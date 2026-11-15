@@ -1,0 +1,113 @@
+import { useEffect, useState } from 'react';
+import { usePage } from '../components/Layout';
+import { useApp } from '../state/AppState';
+import { exportData, importData, emptyState, LEGACY_EXPORT_SNIPPET } from '../state/store';
+import { CodeBlock } from '../components/CodeBlock';
+
+export default function Settings() {
+  usePage('Settings & data');
+  const { state, setSettings, update } = useApp();
+  const s = state.settings;
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [importText, setImportText] = useState('');
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [resetStep, setResetStep] = useState(0);
+  useEffect(() => {
+    if (!('speechSynthesis' in window)) return;
+    const load = () => setVoices(window.speechSynthesis.getVoices());
+    load(); window.speechSynthesis.addEventListener?.('voiceschanged', load);
+    return () => window.speechSynthesis.removeEventListener?.('voiceschanged', load);
+  }, []);
+  const download = () => {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([exportData(state)], { type: 'application/json' }));
+    a.download = `cslab-backup-${new Date().toISOString().slice(0, 10)}.json`; document.body.appendChild(a); a.click(); a.remove();
+  };
+  const doImport = (text: string) => {
+    try { const r = importData(state, text); update(() => r.state); setMsg({ ok: true, text: r.message }); setImportText(''); }
+    catch (e) { setMsg({ ok: false, text: e instanceof Error ? e.message : String(e) }); }
+  };
+  const readFile = (f: File | undefined) => { if (f) f.text().then(doImport); };
+
+  return (
+    <div className="content narrow" style={{ padding: 0 }}>
+      <h1>Settings & data</h1>
+
+      <section className="section">
+        <h2>Reading and display</h2>
+        <div className="panel stack">
+          <div className="row" style={{ flexWrap: 'wrap' }}><span style={{ width: 160 }}>Appearance</span>
+            <div className="seg"><button className={s.theme === 'dark' ? 'on' : ''} onClick={() => setSettings({ theme: 'dark' })}>Dark</button><button className={s.theme === 'light' ? 'on' : ''} onClick={() => setSettings({ theme: 'light' })}>Light</button></div>
+            <span className="faint" style={{ fontSize: '.8rem' }}>Simulation panels stay dark, like instruments.</span></div>
+          <div className="row" style={{ flexWrap: 'wrap' }}><span style={{ width: 160 }}>Text size</span>
+            <input type="range" min={0.85} max={1.4} step={0.05} value={s.textScale} onChange={e => setSettings({ textScale: Number(e.target.value) })} style={{ width: 200 }} aria-label="Text size" />
+            <span className="mono">{Math.round(s.textScale * 100)}%</span></div>
+          <label className="check"><input type="checkbox" checked={s.reducedMotion} onChange={e => setSettings({ reducedMotion: e.target.checked })} />Reduce motion — simulations start paused and transitions are off</label>
+          <label className="check"><input type="checkbox" checked={s.focusMode} onChange={e => setSettings({ focusMode: e.target.checked })} />Focus mode — hide navigation; build guides show one step at a time</label>
+          <label className="check"><input type="checkbox" checked={s.showProposed} onChange={e => setSettings({ showProposed: e.target.checked })} />Show proposed (unapproved) audit changes on project pages</label>
+        </div>
+      </section>
+
+      <section className="section">
+        <h2>Help and assistance</h2>
+        <div className="panel stack">
+          <div className="seg" style={{ alignSelf: 'flex-start' }}>
+            {(['full', 'guided', 'independent'] as const).map(a => <button key={a} className={s.assistance === a ? 'on' : ''} onClick={() => setSettings({ assistance: a })}>{a}</button>)}
+          </div>
+          <p className="muted" style={{ fontSize: '.86rem' }}><b>Full</b>: all code and hints visible. <b>Guided</b>: tests visible (they are the specification); implementation code and hints behind a click so you try first. <b>Independent</b>: each step shows only its goal, the command and the expected result.</p>
+          <div className="row"><span style={{ width: 160 }}>Commands for</span><div className="seg"><button className={s.os === 'unix' ? 'on' : ''} onClick={() => setSettings({ os: 'unix' })}>Mac / Linux</button><button className={s.os === 'win' ? 'on' : ''} onClick={() => setSettings({ os: 'win' })}>Windows</button></div></div>
+        </div>
+      </section>
+
+      <section className="section">
+        <h2>Sessions and breaks</h2>
+        <div className="panel stack">
+          <div className="row" style={{ flexWrap: 'wrap' }}><span style={{ width: 160 }}>Session length</span>
+            <select value={s.session.minutes} onChange={e => setSettings({ session: { ...s.session, minutes: Number(e.target.value) } })} style={{ width: 180 }}>
+              <option value={0}>Off (no timer)</option>{[15, 20, 25, 30, 40, 50, 60, 90].map(m => <option key={m} value={m}>{m} minutes</option>)}
+            </select></div>
+          <div className="row" style={{ flexWrap: 'wrap' }}><span style={{ width: 160 }}>Suggested break</span>
+            <select value={s.session.breakMinutes} onChange={e => setSettings({ session: { ...s.session, breakMinutes: Number(e.target.value) } })} style={{ width: 180 }}>
+              {[3, 5, 10, 15].map(m => <option key={m} value={m}>{m} minutes</option>)}
+            </select></div>
+          <p className="faint" style={{ fontSize: '.82rem' }}>The timer sits in the top bar. When it ends it only suggests a break; nothing is locked and you can keep going.</p>
+        </div>
+      </section>
+
+      <section className="section">
+        <h2>Read aloud</h2>
+        <div className="panel stack">
+          {'speechSynthesis' in window ? <>
+            <div className="row" style={{ flexWrap: 'wrap' }}><span style={{ width: 160 }}>Speed</span>
+              <select value={s.tts.rate} onChange={e => setSettings({ tts: { ...s.tts, rate: Number(e.target.value) } })} style={{ width: 180 }}>{[0.8, 1, 1.15, 1.3, 1.5, 1.75].map(r => <option key={r} value={r}>{r}×</option>)}</select></div>
+            <div className="row" style={{ flexWrap: 'wrap' }}><span style={{ width: 160 }}>Voice</span>
+              <select value={s.tts.voice ?? ''} onChange={e => setSettings({ tts: { ...s.tts, voice: e.target.value || null } })} style={{ maxWidth: 360 }}><option value="">System default</option>{voices.map(v => <option key={v.name} value={v.name}>{v.name} ({v.lang})</option>)}</select></div>
+            <p className="faint" style={{ fontSize: '.82rem' }}>Every build step, lesson explanation and project overview has a ▶ Listen button. Microsoft Edge offers the most natural free voices.</p>
+          </> : <p className="muted">This browser has no speech synthesis.</p>}
+        </div>
+      </section>
+
+      <section className="section">
+        <h2>Your data</h2>
+        <div className="panel stack">
+          <p style={{ fontSize: '.9rem' }}>Progress is saved in this browser automatically after every change, and mirrored into the original HTML file's storage keys. {state.migratedFrom.length > 0 && <span className="badge green">migrated from: {state.migratedFrom.join(', ')}</span>}</p>
+          <div className="btn-row"><button className="btn primary" onClick={download}>Download a full backup (.json)</button>
+            <label className="btn">Restore / import a file<input type="file" accept="application/json,.json" style={{ display: 'none' }} onChange={e => readFile(e.target.files?.[0])} /></label></div>
+          <div className="divider" />
+          <h3>Bring progress from the original HTML file</h3>
+          <p className="muted" style={{ fontSize: '.86rem' }}>Browsers keep storage per website, so the original file (opened from your disk) and this app (on its own address) cannot see each other automatically. Open the original file, press F12 → Console, paste this line and press Enter. It copies your progress; paste it into the box below. Nothing is removed — progress is merged.</p>
+          <CodeBlock code={LEGACY_EXPORT_SNIPPET} kind="cmd" />
+          <textarea className="mono" placeholder="Paste here…" value={importText} onChange={e => setImportText(e.target.value)} aria-label="Import data" />
+          <div className="row"><button className="btn" disabled={!importText.trim()} onClick={() => doImport(importText)}>Merge progress</button></div>
+          {msg && <div className={`notice ${msg.ok ? 'cyan' : 'red'}`} role="status">{msg.text}</div>}
+          <div className="divider" />
+          <h3>Reset</h3>
+          {resetStep === 0 && <button className="btn danger" style={{ alignSelf: 'flex-start' }} onClick={() => setResetStep(1)}>Reset all progress…</button>}
+          {resetStep === 1 && <div className="row" style={{ flexWrap: 'wrap' }}><span className="notice red">This erases progress, notes and settings in this browser. Download a backup first.</span>
+            <button className="btn" onClick={download}>Download backup</button>
+            <button className="btn danger" onClick={() => { update(() => emptyState()); setResetStep(0); setMsg({ ok: true, text: 'Progress reset. Your backup file can restore it.' }); }}>Erase everything</button>
+            <button className="btn ghost" onClick={() => setResetStep(0)}>Cancel</button></div>}
+        </div>
+      </section>
+    </div>
+  );
+}
