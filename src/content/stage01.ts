@@ -9,10 +9,12 @@ import type { Guide, GuideStep } from './legacy/curriculum.js';
 export interface Visual { widget: string; caption: string; preset?: Record<string, number> }
 export interface AddedStep { key: string; item: string; after: number; step: GuideStep; visual?: Visual }
 export interface GuidePatch {
-  steps?: Record<number, { replace?: [string, string][]; addCode?: string; optional?: string; item: string }>;
+  steps?: Record<number, { replace?: [string, string][]; addCode?: string; optional?: string; item: string; see?: string; hint?: string; run?: string; t?: string; code?: string; why?: string; doAll?: string[] }>;
   stuck?: Record<number, { a?: string; b?: string; item: string }>;
   done?: Record<number, { text: string; item: string }>;
   spec?: Partial<Record<'deliverableWhy', { text: string; item: string }>>;
+  /** Replacement text for the project's validation list (index → text). */
+  validation?: Record<number, { text: string; item: string }>;
 }
 
 const S = (t: string, why: string, d: string[], run: string | null, see: string | null, hint: string | null, code: string | null = null): GuideStep =>

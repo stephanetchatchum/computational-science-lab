@@ -42,7 +42,15 @@ export function effectiveGuide(p: Project, a: Approvals, twoD = false): EffGuide
       if (ps.replace) e.do = e.do.map(d => ps.replace!.reduce((t, [from, to]) => (t === from ? to : t), d));
       if (ps.addCode) e.code = (e.code ?? '') + ps.addCode;
       if (ps.optional) e.optional = ps.optional;
-      if (ps.replace || ps.addCode) e.revised = { item: ps.item, original: before };
+      if (ps.doAll) e.do = ps.doAll;
+      if (ps.why !== undefined) e.why = ps.why;
+      if (ps.see !== undefined) e.see = ps.see;
+      if (ps.hint !== undefined) e.hint = ps.hint;
+      if (ps.run !== undefined) e.run = ps.run;
+      if (ps.t !== undefined) e.t = ps.t;
+      if (ps.code !== undefined) e.code = ps.code;
+      const changed = ps.replace || ps.doAll || ps.why !== undefined || ps.addCode || ps.see !== undefined || ps.hint !== undefined || ps.run !== undefined || ps.t !== undefined || ps.code !== undefined;
+      if (changed) e.revised = { item: ps.item, original: before };
       e.item = ps.item;
     }
     return e;
@@ -55,9 +63,16 @@ export function effectiveGuide(p: Project, a: Approvals, twoD = false): EffGuide
   });
   const setup = setupStepFor(p, g) as EffStep; setup.key = 's0'; setup.origin = 'setup'; setup.visuals = [];
   const git = gitStepFor(p, g) as EffStep; git.key = 's' + (g.steps.length + 1); git.origin = 'git'; git.visuals = [];
+  // The pytest count in the finish checks follows the tests actually in the guide (audit steps add tests).
+  const all = [...orig, ...added.map(x => x.step)];
+  const nTests = all.reduce((n, s) => n + ((s.code ?? '').match(/^def test_/gm) ?? []).length, 0);
+  const addedItems = [...new Set(added.filter(x => /^def test_/m.test(x.step.code ?? '')).map(x => x.item).concat(orig.filter(s => s.revised && /^def test_/m.test(s.code ?? '')).map(s => s.item!)))];
   const done = (g.done ?? []).map((text, i) => {
     const d = patch?.done?.[i];
-    return d && isApproved(a, d.item) ? { text: d.text, item: d.item } : { text };
+    const out: { text: string; item?: string } = d && isApproved(a, d.item) ? { text: d.text, item: d.item } : { text };
+    const m = out.text.match(/\*\*(\d+) passed\*\*/);
+    if (m && Number(m[1]) !== nTests && (addedItems.length || isApproved(a, 'A1'))) { out.text = out.text.replace(m[0], `**${nTests} passed**`); out.item ??= addedItems.length ? addedItems.join(', ') : 'A1'; }
+    return out;
   });
   const stuck = (g.stuck ?? []).map(([x, y], i): [string, string, string?] => {
     const s = patch?.stuck?.[i];
@@ -74,3 +89,9 @@ export function specText(p: Project, field: 'deliverableWhy', a: Approvals): { t
 
 /** Steps that should count toward progress (optional steps do not block "next action"). */
 export const requiredSteps = (eg: EffGuide) => eg.steps.filter(s => !s.optional);
+
+/** The project's validation list with approved audit fixes applied. */
+export function validationText(p: Project, a: Approvals): { text: string; item?: string }[] {
+  const v = PATCHES[p.id]?.validation;
+  return p.validation.map((text, i) => (v?.[i] && isApproved(a, v[i].item) ? { text: v[i].text, item: v[i].item } : { text }));
+}

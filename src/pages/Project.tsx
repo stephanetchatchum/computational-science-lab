@@ -4,7 +4,7 @@ import { usePage } from '../components/Layout';
 import { useApp } from '../state/AppState';
 import { GUIDES_2D, isUnlocked, milestonesFor, revisionsFor, type Project as P } from '../content/curriculum';
 import { FINDINGS, DECISIONS } from '../content/audit';
-import { effectiveGuide, specText, type EffGuide, type EffStep } from '../content/guides';
+import { effectiveGuide, specText, validationText, type EffGuide, type EffStep } from '../content/guides';
 import { HERO_VIZ, guideMarkdown, comeBackCommands } from '../content/legacy/guideExtras.js';
 import { Md, Html, paragraphs, stripMarkup } from '../components/Markup';
 import { CodeBlock } from '../components/CodeBlock';
@@ -119,7 +119,7 @@ function FinishTab({ p, eg, guideKey }: { p: P; eg?: EffGuide; guideKey: string 
     <div className="stack" style={{ gap: 28 }}>
       <section>
         <h2>How you will know it is right</h2>
-        <div className="stack sm" style={{ marginTop: 10 }}>{p.validation.map((v, i) => <div key={i} className="oracle"><span className="o">CHECK {i + 1}</span><span>{v}</span></div>)}</div>
+        <div className="stack sm" style={{ marginTop: 10 }}>{validationText(p, state.approvals).map((v, i) => <div key={i} className="oracle"><span className="o">CHECK {i + 1}</span><span>{v.text} {v.item && <span className="badge violet">revised · {v.item}</span>}</span></div>)}</div>
       </section>
       {checks.length > 0 && <section>
         <h2>You are finished when all of these are true</h2>

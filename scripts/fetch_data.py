@@ -27,6 +27,7 @@ SOURCES = {
     'owid_co2_data.csv': ('https://raw.githubusercontent.com/owid/co2-data/master/owid-co2-data.csv', 's2p3', 'Our World in Data CO2'),
     'noaa_gml_co2_mm_mlo.csv': ('https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_mlo.csv', 's2p6', 'Mauna Loa monthly mean CO2 (NOAA GML)'),
     'nasa_power_daily_T2M_kigali_1994_2023.json': (f'{POWER}/daily/point?parameters=T2M&community=RE&longitude=30.06&latitude=-1.94&start=19940101&end=20231231&format=JSON', 's2p6', 'Kigali daily temperature, 30 years'),
+    'nasa_power_hourly_kigali_2022.json': (f'{POWER}/hourly/point?parameters=ALLSKY_SFC_SW_DWN&community=RE&longitude=30.06&latitude=-1.94&start=20220101&end=20221231&time-standard=LST&format=JSON', 's3p5', 'Kigali hourly irradiance, Wh/m2, local solar time'),
     'geonames_cities15000.zip': ('https://download.geonames.org/export/dump/cities15000.zip', 's2p5', 'GeoNames towns over 15 000 people'),
 }
 GRID_LATS = [-4, -2, 0, 2, 4, 6, 8, 10]
@@ -71,6 +72,19 @@ def main():
                     time.sleep(1)
             save(name, json.dumps(grid).encode(), power_monthly('PRECTOTCORR', 'LAT', 'LON', 1991, 2023), 's4p5', '8 x 8 grid used by the guide', manifest)
         except Exception as e: failures.append((name, str(e))); print('  FAILED', e)
+    name = 'owid_cases_deaths_rwanda.csv'
+    if not only or only == name:
+        print('fetch', name)
+        url = 'https://catalog.ourworldindata.org/garden/covid/latest/cases_deaths/cases_deaths.csv'
+        try:
+            import csv, io
+            rows = list(csv.reader(io.StringIO(get(url).decode('utf-8'))))
+            col = rows[0].index('country')
+            keep = [rows[0]] + [r for r in rows[1:] if r[col] == 'Rwanda']
+            if len(keep) < 100: raise ValueError(f'only {len(keep)} Rwanda rows')
+            out = io.StringIO(); csv.writer(out, lineterminator='\n').writerows(keep)
+            save(name, out.getvalue().encode(), url, 's3p3', 'Rwanda rows only of the OWID/WHO cases and deaths file', manifest)
+        except Exception as e: failures.append((name, str(e))); print('  FAILED', e)
     name = 'opentopodata_srtm30m_kigali_box.json'
     if not only or only == name:
         print('fetch', name)
@@ -87,7 +101,7 @@ def main():
     json.dump(manifest, open(mpath, 'w'), indent=2, sort_keys=True)
     if failures:
         print('\nSome downloads failed (older copies, if any, were kept):'); [print(' -', n, e) for n, e in failures]
-        sys.exit(1 if len(failures) == len(SOURCES) + 2 else 0)
+        sys.exit(1 if len(failures) == len(SOURCES) + 3 else 0)
 
 if __name__ == '__main__':
     main()

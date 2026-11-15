@@ -3,6 +3,7 @@ import { buildViz, VIZ } from '../content/legacy/viz.js';
 import '../lab/newWidgets';
 import '../lab/stepWidgets';
 import '../lab/stepWidgets2';
+import '../lab/stepWidgets3';
 import { useApp } from '../state/AppState';
 import { Md } from './Markup';
 import type { Visual } from '../content/stages';

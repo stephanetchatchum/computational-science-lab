@@ -8,6 +8,7 @@ import { roundMeasurement, smallRootSeries } from '../src/lab/stepWidgets';
 import '../src/lab/newWidgets';
 import '../src/lab/stepWidgets2';
 import { solve2, elimCount, singularValues, vander } from '../src/lab/stepWidgets2';
+import * as W3 from '../src/lab/stepWidgets3';
 import { mergeStates, decide } from '../src/sync/merge';
 import { emptyState, load, memoryStorage, save, STATE_KEY } from '../src/state/store';
 import { spokenCode, sentences, wordSchedule } from '../src/lib/reader';
@@ -15,7 +16,7 @@ import { spokenCode, sentences, wordSchedule } from '../src/lib/reader';
 const all = defaultApprovals();
 const none: Approvals = Object.fromEntries(AUDIT_ITEMS.map(i => [i.id, 'pending']));
 const P = (id: string) => buildProjects(all).find(p => p.id === id)!;
-const STAGE01 = ['s0p1', 's0p2', 's0p3', 's0p4', 's1p1', 's1p2', 's1p3', 's1p4', 's1p5', 's1p6', 's2p1', 's2p2', 's2p3', 's2p4', 's2p5', 's2p6'];
+const STAGE01 = ['s0p1', 's0p2', 's0p3', 's0p4', 's1p1', 's1p2', 's1p3', 's1p4', 's1p5', 's1p6', 's2p1', 's2p2', 's2p3', 's2p4', 's2p5', 's2p6', 's3p1', 's3p2', 's3p3', 's3p4', 's3p5'];
 
 describe('effective guides', () => {
   it('every audit item is approved by default (your decision)', () => {
@@ -37,7 +38,7 @@ describe('effective guides', () => {
       g.steps.slice(1, -1).forEach((s, i) => { expect(s.do).toEqual(GUIDES[id].steps[i].do); expect(s.code).toEqual(GUIDES[id].steps[i].code); });
     }
   });
-  it('every Stage 0–2 build step (including the new ones) has a visual, and every visual exists', () => {
+  it('every Stage 0–3 build step (including the new ones) has a visual, and every visual exists', () => {
     for (const id of STAGE01) {
       const g = effectiveGuide(P(id), all)!;
       for (const s of g.steps.filter(x => x.origin === 'original' || x.origin === 'added')) {
@@ -64,6 +65,17 @@ describe('effective guides', () => {
     expect(P('s2p6').firstWin).toMatch(/CO₂/);
     for (const id of ['s4p8', 's4p9', 's5p7']) expect(hasGuide(id)).toBe(false);
     expect(Object.keys(STEP_VISUALS).length).toBeGreaterThanOrEqual(9);
+  });
+});
+
+describe('finish checks', () => {
+  it('"N passed" always equals the number of tests in the guide, with or without audit steps', () => {
+    for (const ap of [all, none]) for (const p of buildProjects(ap)) {
+      const g = effectiveGuide(p, ap); if (!g) continue;
+      const n = g.steps.reduce((s, x) => s + ((x.code ?? '').match(/^def test_/gm) ?? []).length, 0);
+      const m = g.done.map(x => x.text).join(' ').match(/\*\*(\d+) passed\*\*/);
+      if (m && !(ap === none && p.id === 's0p4')) expect(Number(m[1]), p.id).toBe(n); // original s0p4 text says 5 for 4 tests (fixed under A1)
+    }
   });
 });
 
@@ -107,6 +119,22 @@ describe('read-aloud sentences and words', () => {
   it('estimated word schedule starts each word in order', () => {
     const w = wordSchedule('One two, three.');
     expect(w.map(x => x.at)).toEqual([0, 4, 9]); expect(w[0].time).toBe(0); expect(w[2].time).toBeGreaterThan(w[1].time);
+  });
+});
+
+describe('Stage 3 visual maths (matches the reference solutions)', () => {
+  it('RK4 explodes on the stiff problem at Δt = 0.1; backward Euler is within 1e-3', () => {
+    expect(Math.abs(W3.rk4Stiff(0.1).at(-1)![1])).toBeGreaterThan(1e10);
+    expect(Math.abs(W3.backwardEuler((t, y) => -50 * (y - Math.cos(t)), 0, 2, 0.1).at(-1)![1] - W3.stiffExact(2))).toBeLessThan(1e-3);
+  });
+  it('adaptive RK4 meets the original check: under 500 steps, error under 1e-6', () => {
+    const a = W3.adaptiveRK4((_t, y) => -y, 1, 5, 1e-8); expect(a.ts.length).toBeLessThan(500); expect(Math.abs(a.ys.at(-1)! - Math.exp(-5))).toBeLessThan(1e-6);
+  });
+  it('the Poisson fit recovers ρ = 0.1 at the true β and s₀', () => { expect(W3.fitAt(0.4, 0.5).rho).toBeCloseTo(0.1, 3); expect(W3.poissonNLL([2, 0], [1, 1])).toBeCloseTo(2, 12); });
+  it('the Lotka–Volterra period from (22, 10) is 2π/√1.5 within 0.01', () => expect(Math.abs(W3.lvLoop(22).period - 2 * Math.PI / Math.sqrt(1.5))).toBeLessThan(0.01));
+  it('gradient descent lands within 2% of the grid ($3050 at 2.0 kW, 5.5 kWh)', () => {
+    const g = W3.gridBest(); expect(g[0]).toBeCloseTo(3050, 6);
+    for (const st of [[4, 20], [1, 2]]) { const e = W3.gradientPath(st[0], st[1]).at(-1)!; expect(Math.abs(W3.costOf(e[0], e[1]) / g[0] - 1)).toBeLessThan(0.02); expect(W3.shortFrac(e[0], e[1])).toBeLessThan(0.052); }
   });
 });
 
