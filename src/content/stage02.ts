@@ -44,7 +44,7 @@ export const STEP_VISUALS: Record<string, Record<number, Visual>> = {
 
 export const PATCHES: Record<string, GuidePatch> = {
   s2p4: { steps: { 3: { item: 'E1', optional: 'Optional (audit E1): the walker swarm is a decorative view of the same numbers. The exact stationary shares in step 5 carry the science.' } } },
-  s2p5: { steps: { 6: { item: 'E1', optional: 'Optional (audit E1): live walkers. Keep the README comparison of degree against eigenvector centrality, which the checks already cover.' } } },
+  s2p5: { steps: { 5: { item: 'A1', why: 'Towns as dots, links as lines. The links join nearest neighbours; they are not roads.' }, 6: { item: 'E1', optional: 'Optional (audit E1): live walkers. Keep the README comparison of degree against eigenvector centrality, which the checks already cover.' } } },
 };
 
 export const ADDED_STEPS: Record<string, AddedStep[]> = {
@@ -101,7 +101,7 @@ export const ADDED_STEPS: Record<string, AddedStep[]> = {
        'Write {{dijkstra(adj_w, start, goal)}} where {{adj_w[u]}} is a dictionary {{neighbour: distance}}. Use {{heapq}} as the priority queue of {{(distance so far, town)}}. Return {{(total_distance, path)}}.',
        'Add the checks below. On the four-town map, A–B is 5 km, A–C 2 km, B–C 1 km and C–D 4 km.',
        'On your real network: give each link its distance in km (use the haversine formula on lat/lon). Pick two towns far apart. Print the BFS route, the Dijkstra route and both lengths.',
-       'In **README.md** state honestly what your links are: nearest-neighbour links between towns are a **proximity graph**, not roads (Decision 3 on the Audit page decides whether to switch to real roads).'],
+       'In **README.md** state honestly what your links are: nearest-neighbour links between towns are a **proximity graph**, not roads. Shortest routes on it are straight-line hops between towns, a lower bound on real travel distance.'],
       'python -m pytest -q tests/test_graph.py',
       'All checks pass. From A, BFS reaches B in one hop (5 km), but Dijkstra goes A → C → B for **3 km**. A to D is **6 km** via C either way.',
       'If Dijkstra returns the BFS route, check that you push {{(d + w, v)}} with the NEW total and skip towns you have already finished.',

@@ -187,6 +187,7 @@ export default function Project() {
       <div className="tag-row"><span className="mono faint">{p.id}</span><span className="faint">· Stage {p.stage} · {p.time}</span><DomainBadge domain={p.domain} /><VisualBadge p={p} />
         {done.has(p.id) && <span className="badge green">complete</span>}{locked && <span className="badge amber">locked</span>}</div>
       <h1 style={{ margin: '8px 0 6px' }}>{p.title}</h1>
+      {p.specRevised && <p className="faint" style={{ fontSize: '.8rem', margin: '0 0 6px' }}><span className="badge violet">revised · {p.specRevised}</span> The description was corrected to match what the guide actually builds. The original text is under Details.</p>}
       {p.firstWin && <p className="lead"><b style={{ color: 'var(--accent)' }}>Your first win · </b>{p.firstWin.replace(/^(Early win|Within the first (hour|sitting)): ?/, '')}</p>}
       {locked && <p className="notice" style={{ marginTop: 12 }}>Locked until {p.prereqs.filter(q => !done.has(q)).map((q, i) => <span key={q}>{i ? ', ' : ''}<Link to={`/project/${q}`}>{q}</Link></span>)} {p.prereqs.filter(q => !done.has(q)).length > 1 ? 'are' : 'is'} complete. You can still read everything.</p>}
 

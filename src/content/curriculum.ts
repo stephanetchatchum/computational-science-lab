@@ -15,6 +15,8 @@ export interface Project extends LegacyProject {
   /** 'original' = from the HTML; 'audit' = new project from the audit (spec only, no build guide) */
   origin: 'original' | 'audit';
   auditItem?: string; summary?: string; oracles?: string[]; labWidget?: string;
+  /** Set when audit A1 rewrote this project's specification text. */
+  specRevised?: string;
 }
 
 export type Approvals = Record<string, ApprovalState>;
@@ -32,6 +34,22 @@ function newProject(spec: typeof NEW_PROJECTS[number]): Project {
   };
 }
 
+/**
+ * Audit A1 ("align specs with guides"), following Decisions 3 and 4 (made by Claude at the learner's request, Nov 2026).
+ * Decision 3: s2p5 keeps GeoNames towns and is honest that its links are a proximity graph, not roads.
+ */
+const SPEC_ALIGN: Record<string, { item: string; apply: (p: Project) => Partial<Project> }> = {
+  s2p5: { item: 'A1', apply: p => ({
+    title: 'Eigenvector Centrality Analysis of an African Town Network',
+    explain: p.explain.replace('then unleash it on a real African road network pulled from OpenStreetMap.', 'then unleash it on a real network of Kenyan towns from GeoNames, where each town is linked to its nearest neighbours.'),
+    problem: p.problem.replace('Then extract a real road or settlement network for one African region of your choice from OpenStreetMap, via the Overpass API, representing at least 30 nodes,', 'Then build a real settlement network for one African region from GeoNames (at least 30 towns), linking each town to its nearest neighbours — a proximity graph, not a road map —'),
+    firstWin: 'Early win: a real map of towns sized by importance — the biggest dots are the ones your algorithm just crowned as structurally central.',
+    dataSource: 'GeoNames cities15000: real towns and coordinates. Links join each town to its nearest neighbours, so this is a proximity graph, not roads. A copy is kept in the course repository.',
+    milestones: p.milestones.map((m, i) => i === 0 ? 'Build a real settlement network for a region: GeoNames towns, each linked to its nearest neighbours (a proximity graph), stored as an adjacency matrix.' : m.replace('Draw the real road network', 'Draw the real town network')),
+    validation: p.validation.map((v, i) => i === 1 ? 'Sanity-check centrality against real-world knowledge of the region (a known regional hub town should not rank as structurally unimportant), and say plainly that links are proximity, not roads.' : v),
+  }) },
+};
+
 /** Projects in learning order, with approved prerequisite edges applied. Original ids are never changed. */
 export function buildProjects(a: Approvals): Project[] {
   const base: Project[] = PROJECTS.map(p => ({ ...p, prereqs: [...p.prereqs], origin: 'original' as const }));
@@ -41,6 +59,10 @@ export function buildProjects(a: Approvals): Project[] {
     if (!isApproved(a, ch.item)) continue;
     const p = all.find(x => x.id === ch.project);
     if (p && !p.prereqs.includes(ch.add)) p.prereqs.push(ch.add);
+  }
+  for (const [id, fix] of Object.entries(SPEC_ALIGN)) {
+    const p = all.find(x => x.id === id);
+    if (p && isApproved(a, fix.item)) Object.assign(p, fix.apply(p), { specRevised: fix.item });
   }
   if (added.length === 0) return all;
   const rank = new Map(REVISED_ORDER.map((id, i) => [id, i]));

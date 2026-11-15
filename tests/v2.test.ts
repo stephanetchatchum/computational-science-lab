@@ -68,6 +68,21 @@ describe('effective guides', () => {
   });
 });
 
+describe('Decision 3 (made by Claude at the learner\'s request)', () => {
+  it('s2p5 no longer promises OpenStreetMap roads once A1 is approved; the original stays without it', () => {
+    const p = P('s2p5'); const text = [p.title, p.explain, p.problem, p.firstWin, p.dataSource, ...p.milestones, ...p.validation].join(' ');
+    expect(text).not.toMatch(/Overpass|OpenStreetMap|road network/i);
+    expect(p.dataSource).toMatch(/proximity graph/); expect(p.specRevised).toBe('A1');
+    const orig = buildProjects(none).find(x => x.id === 's2p5')!; expect(orig.problem).toMatch(/Overpass/); expect(orig.specRevised).toBeUndefined();
+  });
+  it('new and migrated learners get Decisions 3 and 4 recorded, without overwriting a choice already made', () => {
+    expect(emptyState().decisions).toMatchObject({ s2p5: 'geonames', s4p5: 'power' });
+    const st = memoryStorage(); save(st, { ...emptyState(), approvalsRev: 2, decisions: { guides: 'full', s2p5: 'overpass' } } as never);
+    const raw = JSON.parse(st.data[STATE_KEY]); raw.approvalsRev = 2; raw.decisions = { guides: 'full', s2p5: 'overpass' }; st.set(STATE_KEY, JSON.stringify(raw));
+    const s = load(st); expect(s.decisions).toMatchObject({ s2p5: 'overpass', s4p5: 'power' }); expect(s.approvalsRev).toBe(3);
+  });
+});
+
 describe('finish checks', () => {
   it('"N passed" always equals the number of tests in the guide, with or without audit steps', () => {
     for (const ap of [all, none]) for (const p of buildProjects(ap)) {

@@ -49,15 +49,14 @@ Every new expected value is recomputed by `scripts/verify_oracles.py`. From Stag
 ## Remaining decisions (Audit page)
 
 2. Dead 2D guides: delete, or keep behind a toggle?
-3. s2p5: real Overpass road edges, or GeoNames relabelled as a proximity graph?
-4. s4p5: CHIRPS NetCDF via xarray, or NASA POWER grid with the spec rewritten?
+3. s2p5: **decided (by Claude, at your request): keep GeoNames, labelled honestly as a proximity graph.** The spec text was rewritten under A1.
+4. s4p5: **decided (by Claude, at your request): keep the NASA POWER grid and rewrite the spec** when Stage 4 is built.
 5. Accept the revised pacing, or cut Essential items to hold two years?
 
-Decisions 3 and 4 decide how the Stage 2 and Stage 4 guides are rewritten.
+Reasons are shown on the Audit page. Every decision can still be changed there.
 
 ## Still to build (next stages)
 
 - Step visuals and rewritten steps for Stages 4–6, one stage at a time, same method as Stages 0–3.
 - Full guides for s4p8 and s4p9 (Stage 4), s5p7 (Stage 5), with verified expected values.
 - The s5p6 shallow-water rewrite (D1).
-- Overpass data snapshot, once Decision 3 is made.

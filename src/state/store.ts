@@ -59,7 +59,7 @@ export const emptyState = (): AppState => ({
   // decisions: Decision 1 answered 'full guides' by the learner
 
   version: 1, completed: [], guideProgress: {}, milestones: {}, lessons: {}, reviews: {}, journal: [], history: [],
-  lastLocation: null, approvals: defaultApprovals(), decisions: { guides: 'full' }, settings: defaultSettings(), migratedFrom: [], plan: null, approvalsRev: 2, updatedAt: new Date(0).toISOString(), journalDeleted: [],
+  lastLocation: null, approvals: defaultApprovals(), decisions: { ...DELEGATED_DECISIONS }, settings: defaultSettings(), migratedFrom: [], plan: null, approvalsRev: 3, updatedAt: new Date(0).toISOString(), journalDeleted: [],
 });
 
 export interface StorageAdapter { get(key: string): string | null; set(key: string, value: string): void }
@@ -124,12 +124,18 @@ export function mergeLegacy(state: AppState, legacyCompleted: unknown, legacySte
   return next;
 }
 
+/** Decision 1 answered by the learner; Decisions 3 and 4 made by Claude at the learner's request (15 Nov 2026). Still changeable on the Audit page. */
+export const DELEGATED_DECISIONS: Record<string, string> = { guides: 'full', s2p5: 'geonames', s4p5: 'power' };
+
 export function load(storage: StorageAdapter): AppState {
   let state = sanitize(parse(storage.get(STATE_KEY)));
   const firstRun = storage.get(STATE_KEY) === null;
   state = mergeLegacy(state, parse(storage.get(LEGACY_KEYS.completed)), parse(storage.get(LEGACY_KEYS.steps)), 'original-html (same browser)');
   if (state.approvalsRev < 2) {           // learner approved every audit item on 15 Nov 2026
     state = { ...state, approvalsRev: 2, approvals: defaultApprovals(), decisions: { guides: 'full', ...state.decisions } };
+  }
+  if (state.approvalsRev < 3) {           // 15 Nov 2026: learner asked Claude to make Decisions 3 and 4
+    state = { ...state, approvalsRev: 3, decisions: { ...DELEGATED_DECISIONS, ...state.decisions } };
   }
   if (firstRun) {
     const th = storage.get(LEGACY_KEYS.theme); if (th === 'light' || th === 'dark') state.settings.theme = th;

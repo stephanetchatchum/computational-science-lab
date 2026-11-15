@@ -29,7 +29,7 @@ export default function Audit() {
       {msg && <div className="notice red" role="alert">{msg}</div>}
 
       <section className="section" id="decisions">
-        <h2>Decisions the audit needs from you</h2>
+        <h2>Decisions</h2>
         <div className="stack sm" style={{ marginTop: 10 }}>
           {DECISIONS.map((d, i) => (
             <div key={d.id} className="panel tight">
@@ -39,7 +39,9 @@ export default function Audit() {
                 {d.options.map(o => <button key={o.id} className={`btn small ${state.decisions[d.id] === o.id ? 'primary' : ''}`} onClick={() => update(s => ({ ...s, decisions: { ...s.decisions, [d.id]: o.id } }))}>{o.label}</button>)}
                 {state.decisions[d.id] && <button className="btn small ghost" onClick={() => update(s => { const n = { ...s.decisions }; delete n[d.id]; return { ...s, decisions: n }; })}>Clear</button>}
               </div>
-              {d.id === 'guides' && state.decisions.guides === 'full' && <p className="faint" style={{ fontSize: '.8rem', marginTop: 8 }}>Recorded. The full guides are not written yet — each needs its oracle values computed and verified before it can be added. The new projects show their specification until then.</p>}
+              {d.id === 'guides' && state.decisions.guides === 'full' && <p className="faint" style={{ fontSize: '.8rem', marginTop: 8 }}>Recorded. Full guides are written stage by stage: s1p6 and s2p6 are done; s4p8, s4p9 and s5p7 show their specification until their stage is built.</p>}
+              {d.id === 's2p5' && <p className="faint" style={{ fontSize: '.8rem', marginTop: 8 }}>{state.decisions.s2p5 === 'geonames' ? 'Chosen by Claude at your request. Why: the lesson is eigenvectors, and they work the same on any network. GeoNames is one small, reliable file with a backup copy; road data from Overpass is large, rate-limited and messy to clean, which would turn an eigenvector project into a data-cleaning one. The project text now says plainly that links join nearest towns, not roads. Real roads are a good extension later.' : 'The Overpass road version is not built: the guide still uses GeoNames towns.'}</p>}
+              {d.id === 's4p5' && <p className="faint" style={{ fontSize: '.8rem', marginTop: 8 }}>{state.decisions.s4p5 === 'power' ? 'Chosen by Claude at your request. Why: the 8 × 8 NASA POWER grid is already backed up in this repository and uses the same download code you write in Stage 0. CHIRPS needs NetCDF files and xarray, a new tool and a much bigger download, for a project about trend statistics, not file formats. The specification will be rewritten to match when Stage 4 is built.' : 'The CHIRPS version is not built: the guide still uses the NASA POWER grid.'}</p>}
               {d.id === 'twoD' && state.decisions.twoD === 'toggle' && <p className="faint" style={{ fontSize: '.8rem', marginTop: 8 }}>A “2D version” switch now appears on the nine 3D projects. 2D progress is stored separately.</p>}
             </div>
           ))}

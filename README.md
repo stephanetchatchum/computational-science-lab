@@ -26,7 +26,7 @@ Requires Node 20+.
 npm install
 npm run dev        # http://localhost:5173
 bash scripts/verify_guides.sh   # guide tests vs reference solutions (needs Python + numpy + pytest)
-npm test           # 196 tests: numerics, widgets, guides, curriculum integrity, persistence, sync, UI flows
+npm test           # 198 tests: numerics, widgets, guides, curriculum integrity, persistence, sync, UI flows
 python3 scripts/verify_oracles.py   # recomputes every new expected value in the guides (needs numpy)
 npm run build      # type-check + production build into dist/
 npm run preview    # serve dist/
