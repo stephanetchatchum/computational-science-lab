@@ -1,6 +1,6 @@
 import { useEffect, useReducer, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { reader } from '../lib/reader';
+import { reader, pickVoice } from '../lib/reader';
 import { useApp } from '../state/AppState';
 
 /** The original bottom reader bar: Listen, previous/next line, stop, status, speed, voice, Skip code, A−/A+. */
@@ -20,7 +20,7 @@ export function ReaderBar({ open, onClose }: { open: boolean; onClose: () => voi
     if (!reader.supported) return;
     const load = () => {
       const vs = reader.voices(); setVoices(vs);
-      if (!tts.voice && vs.length) { const pick = vs.find(v => /natural/i.test(v.name)) ?? vs[0]; setSettings({ tts: { ...tts, voice: pick.voiceURI } }); }
+      const chosen = pickVoice(tts.voice); if (chosen && chosen.voiceURI !== tts.voice) setSettings({ tts: { ...tts, voice: chosen.voiceURI } });
     };
     load(); window.speechSynthesis.addEventListener?.('voiceschanged', load);
     return () => window.speechSynthesis.removeEventListener?.('voiceschanged', load);

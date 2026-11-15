@@ -134,6 +134,8 @@ export function load(storage: StorageAdapter): AppState {
   if (firstRun) {
     const th = storage.get(LEGACY_KEYS.theme); if (th === 'light' || th === 'dark') state.settings.theme = th;
     const os = storage.get(LEGACY_KEYS.os); if (os === 'win' || os === 'unix') state.settings.os = os;
+    const voice = storage.get('cs_voice'), rate = parseFloat(storage.get('cs_rate') ?? '');
+    state.settings.tts = { ...state.settings.tts, ...(voice ? { voice } : {}), ...(rate ? { rate } : {}), ...(storage.get('cs_skip') === '1' ? { skipCode: true } : {}) };
   }
   return state;
 }

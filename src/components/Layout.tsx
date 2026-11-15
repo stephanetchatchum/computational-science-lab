@@ -4,21 +4,22 @@ import { useApp } from '../state/AppState';
 import { dueReviews } from '../state/store';
 import { QuickNote } from './QuickNote';
 import { ReaderBar } from './ReaderBar';
+import { ICONS } from './Icons';
 
 const NAV: { to: string; label: string; icon: string; end?: boolean }[] = [
-  { to: '/', label: 'Today', icon: '◉', end: true },
-  { to: '/curriculum', label: 'Curriculum', icon: '▦' },
-  { to: '/lab', label: 'Concept lab', icon: '∿' },
-  { to: '/review', label: 'Review', icon: '↻' },
-  { to: '/journal', label: 'Journal', icon: '✎' },
+  { to: '/', label: 'Today', icon: 'compass', end: true },
+  { to: '/setup', label: 'Setup (do this first)', icon: 'wrench' },
+  { to: '/curriculum', label: 'Project Library', icon: 'grid' },
+  { to: '/lab', label: 'Concept lab', icon: 'flask' },
+  { to: '/review', label: 'Review', icon: 'review' },
+  { to: '/journal', label: 'Journal', icon: 'journal' },
 ];
 const MORE: { to: string; label: string; icon: string }[] = [
-  { to: '/setup', label: 'Setup', icon: '⚙' },
-  { to: '/roadmaps', label: 'Roadmaps & pacing', icon: '⇢' },
-  { to: '/capstone', label: 'Capstone', icon: '★' },
-  { to: '/audit', label: 'Audit & decisions', icon: '◇' },
-  { to: '/settings', label: 'Settings & account', icon: '≡' },
-  { to: '/about', label: 'How this app teaches', icon: 'i' },
+  { to: '/roadmaps', label: 'Subject Roadmaps', icon: 'map' },
+  { to: '/capstone', label: 'Capstone', icon: 'cap' },
+  { to: '/audit', label: 'Audit & decisions', icon: 'audit' },
+  { to: '/settings', label: 'Settings & account', icon: 'settings' },
+  { to: '/about', label: 'How this app teaches', icon: 'info' },
 ];
 
 /** Records where you are so the dashboard can offer "resume". */
@@ -101,13 +102,14 @@ export function Layout() {
         <nav className="nav">
           {NAV.map(n => (
             <NavLink key={n.to} to={n.to} end={n.end}>
-              <span aria-hidden className="nav-i">{n.icon}</span>{n.label}
+              <span className="nav-i">{ICONS[n.icon]}</span>{n.label}
+              {n.to === '/curriculum' && <span className="count">{required}</span>}
               {n.to === '/review' && due > 0 && <span className="count hot">{due}</span>}
             </NavLink>
           ))}
           <details className="nav-more" open={MORE.some(m => loc.pathname.startsWith(m.to))}>
             <summary>More</summary>
-            {MORE.map(n => <NavLink key={n.to} to={n.to}><span aria-hidden className="nav-i">{n.icon}</span>{n.label}</NavLink>)}
+            {MORE.map(n => <NavLink key={n.to} to={n.to}><span className="nav-i">{ICONS[n.icon]}</span>{n.label}</NavLink>)}
           </details>
         </nav>
         <div className="side-progress">

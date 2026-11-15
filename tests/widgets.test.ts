@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { VIZ, makeCtx } from '../src/content/legacy/viz.js';
 import '../src/lab/newWidgets';
 import { STEP_WIDGETS } from '../src/lab/stepWidgets';
+import { STEP_WIDGETS_2 } from '../src/lab/stepWidgets2';
 
 const noop = () => {};
 function fakeCanvas() {
@@ -15,7 +16,7 @@ function fakeCanvas() {
 describe('every lab widget runs headless', () => {
   const names = Object.keys(VIZ);
   it('has the 26 original widgets, the 3 audit widgets and the step visuals', () => {
-    expect(names.length).toBe(29 + STEP_WIDGETS.length);
+    expect(names.length).toBe(29 + STEP_WIDGETS.length + STEP_WIDGETS_2.length);
     expect(STEP_WIDGETS.length).toBeGreaterThanOrEqual(20);
     for (const n of ['stability', 'fft', 'convergence']) expect(names).toContain(n);
   });

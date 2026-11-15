@@ -3,6 +3,7 @@ import { usePage } from '../components/Layout';
 import { useApp } from '../state/AppState';
 import { exportData, importData, emptyState, LEGACY_EXPORT_SNIPPET } from '../state/store';
 import { CodeBlock } from '../components/CodeBlock';
+import { pickVoice } from '../lib/reader';
 import { configFromBuild, getConfig, setConfig, signIn, signOut, signUp } from '../sync/supabase';
 
 function Account() {
@@ -49,7 +50,7 @@ export default function Settings() {
   const [resetStep, setResetStep] = useState(0);
   useEffect(() => {
     if (!('speechSynthesis' in window)) return;
-    const load = () => setVoices(window.speechSynthesis.getVoices());
+    const load = () => setVoices(window.speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang)));
     load(); window.speechSynthesis.addEventListener?.('voiceschanged', load);
     return () => window.speechSynthesis.removeEventListener?.('voiceschanged', load);
   }, []);
@@ -120,8 +121,9 @@ export default function Settings() {
             <div className="row" style={{ flexWrap: 'wrap' }}><span style={{ width: 160 }}>Speed</span>
               <select value={s.tts.rate} onChange={e => setSettings({ tts: { ...s.tts, rate: Number(e.target.value) } })} style={{ width: 180 }}>{[0.8, 1, 1.15, 1.3, 1.5, 1.75].map(r => <option key={r} value={r}>{r}×</option>)}</select></div>
             <div className="row" style={{ flexWrap: 'wrap' }}><span style={{ width: 160 }}>Voice</span>
-              <select value={s.tts.voice ?? ''} onChange={e => setSettings({ tts: { ...s.tts, voice: e.target.value || null } })} style={{ maxWidth: 360 }}><option value="">System default</option>{voices.map(v => <option key={v.name} value={v.name}>{v.name} ({v.lang})</option>)}</select></div>
-            <p className="faint" style={{ fontSize: '.82rem' }}>Every build step, lesson explanation and project overview has a ▶ Listen button. Microsoft Edge offers the most natural free voices.</p>
+              <select value={pickVoice(s.tts.voice)?.voiceURI ?? ''} onChange={e => setSettings({ tts: { ...s.tts, voice: e.target.value || null } })} style={{ maxWidth: 360 }}>{voices.map(v => <option key={v.voiceURI} value={v.voiceURI}>{v.name}</option>)}</select>
+              <button className="btn small" onClick={() => { const u = new SpeechSynthesisUtterance('This is how I will read your lessons.'); const v = pickVoice(s.tts.voice); if (v) { u.voice = v; u.lang = v.lang; } u.rate = s.tts.rate; speechSynthesis.cancel(); speechSynthesis.speak(u); }}>Test voice</button></div>
+            <p className="faint" style={{ fontSize: '.82rem' }}>Like the original app, the reader picks a voice with “Natural” in its name when your browser has one. Microsoft Edge has the most natural free voices (for example “Microsoft Aria Online (Natural)”); Chrome has “Google US English”. Voices come from your browser, so the list differs between Edge, Chrome and Safari.</p>
           </> : <p className="muted">This browser has no speech synthesis.</p>}
         </div>
       </section>

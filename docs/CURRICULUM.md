@@ -40,7 +40,8 @@ Approved changes never overwrite the original. In the build guide they appear as
 |---|---|---|---|
 | 0 | ✅ | ✅ s0p1 (B8 derivation, A1 m/s), s0p2/s0p3 (A1 text), s0p3 (X1 windows), s0p4 (E1 sample variance) | — |
 | 1 | ✅ | ✅ s1p1 (B6), s1p2 (X1 ε and best h), s1p3 (A1 fix, B2 semi-implicit), s1p4 (B3 spatial hash) | ✅ s1p6 full guide |
-| 2–6 | original demos only | shown as checkboxes | s2p6, s4p8, s4p9, s5p7 still specifications |
+| 2 | ✅ | ✅ s2p1 (X1 flop count), s2p2 (X1 curse of dimensionality), s2p3 (B5 QR vs normal equations), s2p4 (A1 dry spells, E1 optional swarm), s2p5 (B3 shortest paths, E1 optional) | ✅ s2p6 full guide (Fourier, real CO₂ and Kigali data) |
+| 3–6 | original demos only | shown as checkboxes | s4p8, s4p9, s5p7 still specifications |
 
 Every new expected value is recomputed by `scripts/verify_oracles.py` (also run in CI).
 
@@ -55,7 +56,7 @@ Decisions 3 and 4 decide how the Stage 2 and Stage 4 guides are rewritten.
 
 ## Still to build (next stages)
 
-- Step visuals and rewritten steps for Stages 2–6, one stage at a time, same method as Stage 0–1.
-- Full guides for s2p6 (Stage 2), s4p8 and s4p9 (Stage 4), s5p7 (Stage 5), with verified expected values.
+- Step visuals and rewritten steps for Stages 3–6, one stage at a time, same method as Stages 0–2.
+- Full guides for s4p8 and s4p9 (Stage 4), s5p7 (Stage 5), with verified expected values.
 - The s5p6 shallow-water rewrite (D1).
 - Overpass data snapshot, once Decision 3 is made.

@@ -25,6 +25,8 @@ SOURCES = {
     'worldbank_KEN_cereal_yield.json': ('https://api.worldbank.org/v2/country/KEN/indicator/AG.YLD.CREL.KG?format=json&per_page=100', 's5p5', 'Kenya cereal yield'),
     'disease_sh_rwanda_historical.json': ('https://disease.sh/v3/covid-19/historical/rwanda?lastdays=all', 's3p3', 'disease.sh is an unmaintained mirror; this copy is the fallback'),
     'owid_co2_data.csv': ('https://raw.githubusercontent.com/owid/co2-data/master/owid-co2-data.csv', 's2p3', 'Our World in Data CO2'),
+    'noaa_gml_co2_mm_mlo.csv': ('https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_mlo.csv', 's2p6', 'Mauna Loa monthly mean CO2 (NOAA GML)'),
+    'nasa_power_daily_T2M_kigali_1994_2023.json': (f'{POWER}/daily/point?parameters=T2M&community=RE&longitude=30.06&latitude=-1.94&start=19940101&end=20231231&format=JSON', 's2p6', 'Kigali daily temperature, 30 years'),
     'geonames_cities15000.zip': ('https://download.geonames.org/export/dump/cities15000.zip', 's2p5', 'GeoNames towns over 15 000 people'),
 }
 GRID_LATS = [-4, -2, 0, 2, 4, 6, 8, 10]

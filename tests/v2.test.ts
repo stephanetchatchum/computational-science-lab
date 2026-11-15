@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { buildProjects, defaultApprovals, GUIDES, type Approvals } from '../src/content/curriculum';
 import { AUDIT_ITEMS } from '../src/content/audit';
 import { effectiveGuide, hasGuide } from '../src/content/guides';
-import { STEP_VISUALS, ADDED_STEPS, NEW_GUIDES, NEW_STEP_VISUALS, PATCHES } from '../src/content/stage01';
+import { STEP_VISUALS, ADDED_STEPS, NEW_GUIDES, NEW_STEP_VISUALS, PATCHES } from '../src/content/stages';
 import { VIZ } from '../src/content/legacy/viz.js';
 import { roundMeasurement, smallRootSeries } from '../src/lab/stepWidgets';
 import '../src/lab/newWidgets';
+import '../src/lab/stepWidgets2';
+import { solve2, elimCount, singularValues, vander } from '../src/lab/stepWidgets2';
 import { mergeStates, decide } from '../src/sync/merge';
 import { emptyState, load, memoryStorage, save, STATE_KEY } from '../src/state/store';
 import { spokenCode } from '../src/lib/reader';
@@ -13,7 +15,7 @@ import { spokenCode } from '../src/lib/reader';
 const all = defaultApprovals();
 const none: Approvals = Object.fromEntries(AUDIT_ITEMS.map(i => [i.id, 'pending']));
 const P = (id: string) => buildProjects(all).find(p => p.id === id)!;
-const STAGE01 = ['s0p1', 's0p2', 's0p3', 's0p4', 's1p1', 's1p2', 's1p3', 's1p4', 's1p5', 's1p6'];
+const STAGE01 = ['s0p1', 's0p2', 's0p3', 's0p4', 's1p1', 's1p2', 's1p3', 's1p4', 's1p5', 's1p6', 's2p1', 's2p2', 's2p3', 's2p4', 's2p5', 's2p6'];
 
 describe('effective guides', () => {
   it('every audit item is approved by default (your decision)', () => {
@@ -35,7 +37,7 @@ describe('effective guides', () => {
       g.steps.slice(1, -1).forEach((s, i) => { expect(s.do).toEqual(GUIDES[id].steps[i].do); expect(s.code).toEqual(GUIDES[id].steps[i].code); });
     }
   });
-  it('every Stage 0–1 build step (including the new ones) has a visual, and every visual exists', () => {
+  it('every Stage 0–2 build step (including the new ones) has a visual, and every visual exists', () => {
     for (const id of STAGE01) {
       const g = effectiveGuide(P(id), all)!;
       for (const s of g.steps.filter(x => x.origin === 'original' || x.origin === 'added')) {
@@ -57,10 +59,10 @@ describe('effective guides', () => {
       expect(a.step.code ?? '').toMatch(/def test_/);
     }
   });
-  it('s1p6 now has a full guide; the other four new projects remain specifications', () => {
-    expect(hasGuide('s1p6')).toBe(true);
-    expect(NEW_GUIDES.s1p6.steps.length).toBe(Object.keys(NEW_STEP_VISUALS.s1p6).length);
-    for (const id of ['s2p6', 's4p8', 's4p9', 's5p7']) expect(hasGuide(id)).toBe(false);
+  it('s1p6 and s2p6 have full guides; the other three new projects remain specifications', () => {
+    for (const id of ['s1p6', 's2p6']) { expect(hasGuide(id)).toBe(true); expect(NEW_GUIDES[id].steps.length).toBe(Object.keys(NEW_STEP_VISUALS[id]).length); expect(P(id).firstWin).not.toBe(''); }
+    expect(P('s2p6').firstWin).toMatch(/CO₂/);
+    for (const id of ['s4p8', 's4p9', 's5p7']) expect(hasGuide(id)).toBe(false);
     expect(Object.keys(STEP_VISUALS).length).toBeGreaterThanOrEqual(9);
   });
 });
@@ -72,6 +74,19 @@ describe('step-visual maths', () => {
   });
   it('the exact small-root series agrees with the stable formula', () => {
     for (const b of [10, 1e3, 1e8]) { const d = Math.sqrt(b * b - 4), q = -0.5 * (b + d); expect(Math.abs(smallRootSeries(b) - 1 / q) / Math.abs(1 / q)).toBeLessThan(1e-15); }
+  });
+});
+
+describe('Stage 2 visual maths (matches scripts/verify_oracles.py)', () => {
+  it('pivoting rescues the tiny-pivot system', () => {
+    const e = 1e-20, tru = 1 / (1 - e);
+    expect(Math.abs(solve2(e, false)[0] - tru)).toBeGreaterThan(0.5);
+    expect(Math.abs(solve2(e, true)[0] - tru)).toBeLessThan(1e-15);
+  });
+  it('elimination counts 3 and 11 operations for n = 2, 3', () => { expect(elimCount(2)).toBe(3); expect(elimCount(3)).toBe(11); expect(elimCount(100) / (1e6 / 3)).toBeCloseTo(1.0148, 3); });
+  it('cond(V) for degree 8 on 20 points is about 6e5, and squares for VᵀV', () => {
+    const xs = Array.from({ length: 20 }, (_, i) => i / 19); const s = singularValues(vander(xs, 8)); const k = s[0] / s.at(-1)!;
+    expect(k).toBeGreaterThan(5e5); expect(k).toBeLessThan(7e5);
   });
 });
 

@@ -34,6 +34,12 @@ function chunkText(t: string, max = 230) {
   if (cur) out.push({ s: cs, t: cur.trimEnd() });
   return out;
 }
+/** Same choice as the original app: your saved voice, else an English "Natural" voice (Edge), else the first English voice. */
+export function pickVoice(saved?: string | null): SpeechSynthesisVoice | null {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
+  const vs = window.speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang));
+  return vs.find(v => v.voiceURI === saved) ?? vs.find(v => v.name === saved) ?? vs.find(v => /natural/i.test(v.name)) ?? vs[0] ?? null;
+}
 const SEL = 'h1,h2,h3,h4,p,li,dt,dd,.see,.hint,.question,[data-tts]';
 
 class ReaderEngine {
@@ -77,7 +83,7 @@ class ReaderEngine {
     this.idx = i; const it = this.items[i]; const sess = ++this.session; this.setActive(it.el); this.emit();
     const synth = window.speechSynthesis; synth.cancel();
     const u = new SpeechSynthesisUtterance(it.text); u.lang = 'en-US'; u.rate = this.rate;
-    const v = synth.getVoices().find(x => x.voiceURI === this.voiceURI); if (v) u.voice = v;
+    const v = pickVoice(this.voiceURI); if (v) { u.voice = v; u.lang = v.lang; }
     u.onboundary = ev => { if (sess !== this.session || !it.map) return; if (ev.name && ev.name !== 'word') return; this.highlightWord(it, ev.charIndex); };
     u.onend = () => { if (sess !== this.session || !this.playing) return; this.speak(i + 1); };
     u.onerror = ev => { if (sess !== this.session) return; if (ev.error === 'interrupted' || ev.error === 'canceled') return; if (this.playing) this.speak(i + 1); };

@@ -173,14 +173,18 @@ export interface NewProjectSpec {
   id: string; item: string; title: string; stage: number; domain: string; difficulty: string; time: string;
   prereqs: string[]; summary: string; oracles: string[]; concepts: { math: string[]; physics: string[]; programming: string[] };
   labWidget?: string; insertAfter: string;
+  /** Filled in once the project has a full build guide. */
+  firstWin?: string; deliverableType?: string; dataSource?: string; tools?: string[];
 }
 /** Part 4, the five new projects. Text is the audit's own; no build guide exists yet (Decision 1). */
 export const NEW_PROJECTS: NewProjectSpec[] = [
   { id: 's1p6', item: 'C1', title: 'Floating Point and the Convergence Harness', stage: 1, domain: 'Computing', difficulty: 'Intermediate', time: '1.5 weeks', prereqs: ['s1p2'], insertAfter: 's1p2', labWidget: 'convergence',
+    firstWin: 'A live log–log plot of your own error curves, bending upward exactly where the computer runs out of digits.', deliverableType: 'Tested Python module + live pygame plot', dataSource: 'None — validated against exactly known answers.', tools: ['numpy', 'pygame', 'pytest'],
     summary: 'IEEE 754, machine epsilon, cancellation (quadratic formula, variance one-pass vs two-pass), Richardson extrapolation, and a reusable order_of_accuracy(f, hs) that every later PDE project imports.',
     oracles: ['Measured orders for forward difference (1), central difference (2) and Simpson (4).'],
     concepts: { math: ['IEEE 754 floating point, machine epsilon', 'Cancellation error', 'Round-off vs truncation, optimal step size', 'Richardson extrapolation'], physics: ['None directly — verification methodology'], programming: ['A reusable convergence-order harness', 'Testing numerical code against known orders'] } },
   { id: 's2p6', item: 'C2', title: 'Fourier Analysis of a Real Climate Signal', stage: 2, domain: 'Climate', difficulty: 'Intermediate', time: '2.5 weeks', prereqs: ['s2p1', 's1p1'], insertAfter: 's2p3', labWidget: 'fft',
+    firstWin: 'A spectrum of real CO₂ data with one spike standing exactly at one year.', deliverableType: 'Tested Python module + live pygame spectrum explorer', dataSource: 'NOAA GML Mauna Loa monthly CO₂ (gml.noaa.gov) and NASA POWER daily temperature for Kigali, 1994–2023.', tools: ['numpy', 'pygame', 'pytest'],
     summary: 'DFT written as a matrix, FFT via NumPy, Parseval check, power spectrum of Mauna Loa CO₂ (annual peak) and of 30 years of NASA POWER daily temperature (annual and semi-annual peaks), spectral derivative accuracy vs finite differences, spectral solution of the 1D heat equation checked against s4p1 later.',
     oracles: ['Peak at 1/365 d⁻¹ within one bin.', 'Parseval to 1e-10.'],
     concepts: { math: ['Discrete Fourier transform as a matrix', 'FFT', "Parseval's theorem", 'Spectral derivatives'], physics: ['Seasonal cycles in climate data'], programming: ['numpy.fft', 'Spectral methods'] } },

@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { buildViz, VIZ } from '../content/legacy/viz.js';
 import '../lab/newWidgets';
 import '../lab/stepWidgets';
+import '../lab/stepWidgets2';
 import { useApp } from '../state/AppState';
 import { Md } from './Markup';
-import type { Visual } from '../content/stage01';
+import type { Visual } from '../content/stages';
 
 /** Register a copy of a widget whose sliders start at preset values. */
 export function presetName(name: string, preset?: Record<string, number>) {

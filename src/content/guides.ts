@@ -6,7 +6,7 @@
 import { GUIDES, GUIDES_2D, isApproved, type Approvals, type Project } from './curriculum';
 import { STEP_VIZ, setupStepFor, gitStepFor } from './legacy/guideExtras.js';
 import type { Guide, GuideStep } from './legacy/curriculum.js';
-import { STEP_VISUALS, PATCHES, ADDED_STEPS, NEW_GUIDES, NEW_STEP_VISUALS, type Visual } from './stage01';
+import { STEP_VISUALS, PATCHES, ADDED_STEPS, NEW_GUIDES, NEW_STEP_VISUALS, type Visual } from './stages';
 
 export interface EffStep extends GuideStep {
   key: string; origin: 'setup' | 'original' | 'added' | 'git';
