@@ -17,7 +17,7 @@ describe('application shell', () => {
   const routes: [string, RegExp][] = [
     ['#/curriculum', /^Curriculum$/], ['#/lab', /^Concept lab$/], ['#/review', /^Review$/], ['#/journal', /Scientific journal/],
     ['#/setup', /Setup: do this once/], ['#/roadmaps', /^Roadmaps$/], ['#/capstone', /^Capstone$/], ['#/audit', /Scientific audit/],
-    ['#/settings', /Settings & data/], ['#/about', /How this app teaches/], ['#/nope', /does not exist/],
+    ['#/settings', /Settings & account/], ['#/about', /How this app teaches/], ['#/nope', /does not exist/],
   ];
   for (const [hash, heading] of routes) {
     it(`renders ${hash}`, async () => {
@@ -30,8 +30,8 @@ describe('application shell', () => {
 describe('every project workspace opens', () => {
   for (const id of REVISED_ORDER) {
     it(id, async () => {
-      go(`#/project/${id}?tab=${id === 's1p6' || id === 's2p6' || id.match(/s4p[89]|s5p7/) ? 'overview' : 'build'}`);
-      expect(await screen.findByText(id, { selector: '.badge' })).toBeInTheDocument();
+      go(`#/project/${id}?tab=${id === 's2p6' || id.match(/s4p[89]|s5p7/) ? 'overview' : 'build'}`);
+      expect((await screen.findAllByText(id)).length).toBeGreaterThan(0);
       expect(screen.queryByText(/Something broke/)).toBeNull();
     });
   }
@@ -39,9 +39,8 @@ describe('every project workspace opens', () => {
 
 describe('progress is real and persistent', () => {
   it('ticking a build step saves it in the new and the original storage keys', async () => {
-    go('#/project/s0p1?tab=build');
-    const tick = await screen.findByRole('button', { name: 'Mark step 1 as done' });
-    fireEvent.click(tick);
+    go('#/project/s0p1?tab=build&step=1');
+    fireEvent.click(await screen.findByRole('button', { name: /Done — next step/ }));
     await waitFor(() => expect(JSON.parse(localStorage.getItem('cslab_state_v1')!).guideProgress.s0p1.s1).toBe(true));
     expect(JSON.parse(localStorage.getItem('cs_guide_progress_v1')!).s0p1.s1).toBe(true);
     cleanup();

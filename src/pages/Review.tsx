@@ -19,7 +19,7 @@ export default function Review() {
   const rate = (r: 'good' | 'again') => { review(id!, r); setAttempt(''); setShown(false); setIdx(0); };
 
   return (
-    <div className="content narrow" style={{ padding: 0 }}>
+    <div className="page">
       <h1>Review</h1>
       <p className="muted" style={{ margin: '6px 0 18px' }}>Recall from memory before looking. Getting it wrong is part of how this works: the effort of retrieving is what strengthens the memory. Intervals grow 1 → 3 → 7 → 16 → 35 → 75 days when you recall it.</p>
       {card ? (

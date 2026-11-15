@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { usePage } from '../components/Layout';
 import { useApp } from '../state/AppState';
 import { VIZ } from '../content/legacy/viz.js';
@@ -14,29 +14,42 @@ export function LabIndex() {
   usePage('Concept lab');
   const { projectById, state } = useApp();
   const sections = labSections(id => !!projectById(id));
+  const [params, setParams] = useSearchParams();
+  const si = Math.min(sections.length - 1, Number(params.get('s') ?? 0));
+  const s = sections[si];
   return (
-    <div>
+    <div className="page">
       <h1>Concept lab</h1>
-      <p className="muted prose" style={{ margin: '6px 0 6px' }}>Every widget answers one question. Open a lesson to predict, experiment, see the mathematics, and connect it to the code you will write. Nothing here is graded.</p>
-      {sections.map(s => (
-        <section key={s.title} className="section">
-          <h2>{s.title}</h2>
-          <p className="muted prose" style={{ margin: '4px 0 12px', fontSize: '.92rem' }}><Md text={s.intro} /></p>
-          <div className="grid three">
-            {s.items.map(({ widget, project }) => {
-              const rec = state.lessons[widget]; const spec = VIZ[widget];
-              return (
-                <Link key={widget + project} to={`/lesson/${widget}`} className="lab-card">
-                  <div className="row"><span className="kicker">{widget}</span><span className="spacer" />{rec?.completedAt ? <span className="badge green">done</span> : rec ? <span className="badge cyan">started</span> : null}</div>
-                  <b style={{ fontSize: '.95rem' }}>{LESSONS[widget]?.question ?? spec?.title}</b>
-                  <span className="eq">{stripMarkup(spec?.eq ?? '')}</span>
-                  <span className="faint" style={{ fontSize: '.78rem' }}>Used in {project}{projectById(project) ? ` · ${projectById(project)!.title.split(':')[0]}` : ''}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-      ))}
+      <p className="lead">Play first. Every widget answers one question; nothing here is graded.</p>
+      <div className="row" style={{ marginTop: 18, flexWrap: 'wrap' }}>
+        <span className="faint mono" style={{ fontSize: '.8rem' }}>Topic {si + 1} of {sections.length}</span>
+        <select aria-label="Choose a topic" value={si} onChange={e => setParams({ s: e.target.value })} style={{ width: 'auto', maxWidth: '100%' }}>
+          {sections.map((x, i) => <option key={x.title} value={i}>{x.title}</option>)}
+        </select>
+      </div>
+      <section className="section">
+        <h2>{s.title}</h2>
+        <p className="muted" style={{ marginTop: 6 }}><Md text={s.intro} /></p>
+        <div className="lab-stage">
+          {s.items.map(({ widget, project }) => {
+            const p = projectById(project); const rec = state.lessons[widget];
+            return (
+              <div key={widget + project} className="lab-item">
+                <VizWidget name={widget} />
+                <div className="row" style={{ flexWrap: 'wrap', marginTop: 6 }}>
+                  <Link className="btn small" to={`/lesson/${widget}`}>{rec?.completedAt ? '✓ Lesson done — open again' : 'Open the lesson: predict, test, explain'}</Link>
+                  {p && <span className="faint" style={{ fontSize: '.84rem' }}>You build this in <Link to={`/project/${p.id}`}>{p.id} · {p.title.split(':')[0]}</Link></span>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="row" style={{ marginTop: 24 }}>
+          {si > 0 && <button className="btn ghost" onClick={() => setParams({ s: String(si - 1) })}>← {sections[si - 1].title}</button>}
+          <span className="spacer" />
+          {si < sections.length - 1 && <button className="btn" onClick={() => setParams({ s: String(si + 1) })}>{sections[si + 1].title} →</button>}
+        </div>
+      </section>
     </div>
   );
 }
@@ -85,7 +98,7 @@ export function LessonPage() {
   const answered = choice !== null;
 
   return (
-    <div className="content narrow" style={{ padding: 0 }}>
+    <div className="page">
       <div className="kicker">{section?.title ?? 'Concept lab'}</div>
       <h1 style={{ margin: '6px 0 18px' }}>{spec.title}</h1>
       <div className="lesson-flow">

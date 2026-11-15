@@ -58,3 +58,11 @@ Keyboard-reachable controls, visible focus rings, skip link, ARIA labels on icon
 - `curriculum.test.ts` — the 35 ids and order, every guide intact, 2D guides preserved, all widget references resolve, overlay with nothing approved equals the original exactly, 40-project revised order, prerequisite edges, no cycles, demotions point at real milestones, workload arithmetic, markup escaping.
 - `store.test.ts` — migration, mirroring, union merge, corrupt storage, both import formats, spaced-review intervals.
 - `app.test.tsx` — every route renders, all 40 project workspaces open, ticking a step persists to both keys, completion flow, lesson flow, reversible audit approval, journal linking.
+
+## v2 additions
+
+- **Effective guides** (`src/content/guides.ts`): original guide + approved patches + added steps + visuals. Keys: `s0` setup, `s1…sN` original steps, `a:<item>-<name>` added steps, `s(N+1)` git, `d0…` finish checks. Ticks saved under the original app's keys therefore never move.
+- **Step visuals** (`src/lab/stepWidgets.ts`): the same canvas engine as the original widgets; a step can show the original demo and a new one behind small tabs. Presets start sliders at the right values.
+- **Read-aloud** (`src/lib/reader.ts`): the original reader ported — line and word highlight, spoken commands, Skip code, voice and speed in the bar.
+- **Sync** (`src/sync/`): Supabase email + password auth (PKCE). `decide()` takes the remote copy, pushes the local one, or merges (`mergeStates`: union of completions/ticks/notes, tombstones for deleted notes, newer settings) based on what changed since the last sync.
+- **Data snapshots**: `scripts/fetch_data.py` runs on GitHub's servers (`data-snapshots.yml`), writes `data/snapshots/` + `manifest.json` (source, time, size, SHA-256).

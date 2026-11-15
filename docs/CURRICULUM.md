@@ -21,38 +21,41 @@ Project ids are never renamed. The extraction is reproducible: `python3 scripts/
 
 One display fix: the original formatter applied `**bold**` inside `{{code}}`, so `vx**2` in code rendered as bold. The app keeps `**` literal inside code.
 
-## Audit items and their defaults
+## Audit items
 
-All 26 items are in **Audit & decisions** with Approve / Pending / Reject. Defaults:
+On 15 Nov 2026 you approved **every** audit recommendation and chose **full build guides** (Decision 1).
+Saved progress from before was migrated automatically; nothing was lost. Items can still be switched
+off one by one on the Audit page.
 
-- **Approved by the build brief:** C1–C5 (the five new projects → 40 required) and F1 (the three widgets).
-- **Pending (everything else):** A1–A3, B1–B10, X1, D1, E1–E3, F2.
+Approved changes never overwrite the original. In the build guide they appear as:
 
-What approving does (nothing rewrites original text):
+- **revised** step cards (with a "Show original text" button), for text fixes such as A1;
+- **new step** cards with their own tests (keys `a:…`, so existing ticks never move);
+- **optional** labels for the decorative visuals demoted by E1;
+- for projects whose stage has not been rewritten yet, as checkboxes under *Tests & finish*.
 
-| Item type | Effect when approved |
-|---|---|
-| C1–C5 | Project appears as a specification (summary + oracles) in the revised order; its prerequisite-edge changes apply (s1p1 ← s1p6, s4p4 ← s4p8, s5p2 ← s5p7). |
-| B*, X1, D1, A1/A3 fixes | The audit's text for that project appears as **required additions** with their own checkboxes under *Tests & finish*. |
-| E1 | The eight decorative visual milestones are labelled optional (s0p4's third dial is already an extension, so nothing changes there). |
-| E2 | Roadmaps show the revised pacing (3.5 y / 2.3 y / 16 months). |
-| E3 | Specialisation track cards appear in Curriculum (not counted). |
-| F2 | Fourier / elliptic PDEs / floating point / Bayesian rows and the Verification timeline item appear in Roadmaps. |
+## Built so far, stage by stage
 
-Item **X1** was added because Part 3 of the audit proposes changes for s0p3, s1p2, s2p1, s2p2 and s5p4 that its Part 5 approval list does not mention. They are kept separate so you can decide them explicitly.
+| Stage | Every step has a visual | Audit changes written as steps | New project guide |
+|---|---|---|---|
+| 0 | ✅ | ✅ s0p1 (B8 derivation, A1 m/s), s0p2/s0p3 (A1 text), s0p3 (X1 windows), s0p4 (E1 sample variance) | — |
+| 1 | ✅ | ✅ s1p1 (B6), s1p2 (X1 ε and best h), s1p3 (A1 fix, B2 semi-implicit), s1p4 (B3 spatial hash) | ✅ s1p6 full guide |
+| 2–6 | original demos only | shown as checkboxes | s2p6, s4p8, s4p9, s5p7 still specifications |
 
-## Decisions that are still yours (Audit page)
+Every new expected value is recomputed by `scripts/verify_oracles.py` (also run in CI).
 
-1. Full build guides for the five new projects, or specifications only?
+## Remaining decisions (Audit page)
+
 2. Dead 2D guides: delete, or keep behind a toggle?
 3. s2p5: real Overpass road edges, or GeoNames relabelled as a proximity graph?
 4. s4p5: CHIRPS NetCDF via xarray, or NASA POWER grid with the spec rewritten?
 5. Accept the revised pacing, or cut Essential items to hold two years?
 
-## Not built yet (deliberately)
+Decisions 3 and 4 decide how the Stage 2 and Stage 4 guides are rewritten.
 
-- **Build guides for s1p6, s2p6, s4p8, s4p9, s5p7.** Each needs numbered test-first steps and every oracle value computed and verified, as the original guides were. Inventing them without that verification would break the curriculum's own standard. The specification pages show the audit's summary and oracles, and link the relevant lab widget.
-- **Rewritten guide text for A1 / D1** (e.g. the s5p6 shallow-water rewrite): shown as approved required work, not as rewritten steps, for the same reason.
-- **Specialisation-track guides** (the audit itself proposes cards without guides).
-- **Server sync / accounts:** the storage adapter is ready; see `ARCHITECTURE.md`.
-- **Cached fallback data files (A3)** for disease.sh / Open Topo Data / Overpass: these need the actual data snapshots, which are not in the source documents.
+## Still to build (next stages)
+
+- Step visuals and rewritten steps for Stages 2–6, one stage at a time, same method as Stage 0–1.
+- Full guides for s2p6 (Stage 2), s4p8 and s4p9 (Stage 4), s5p7 (Stage 5), with verified expected values.
+- The s5p6 shallow-water rewrite (D1).
+- Overpass data snapshot, once Decision 3 is made.

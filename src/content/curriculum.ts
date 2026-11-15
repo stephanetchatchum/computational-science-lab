@@ -3,6 +3,7 @@
  * Pure functions only, so they are easy to test.
  */
 import { STAGES, PROJECTS, CAPSTONE, GUIDES, GUIDES_2D, type LegacyProject, type Guide } from './legacy/curriculum.js';
+import { NEW_GUIDES } from './stage01';
 import { AUDIT_ITEMS, NEW_PROJECTS, PREREQ_CHANGES, REVISED_ORDER, REVISIONS, DEMOTIONS, type ApprovalState, type Revision } from './audit';
 
 export { STAGES, CAPSTONE, GUIDES, GUIDES_2D };
@@ -24,8 +25,9 @@ function newProject(spec: typeof NEW_PROJECTS[number]): Project {
   return {
     id: spec.id, title: spec.title, stage: spec.stage, domain: spec.domain, difficulty: spec.difficulty, time: spec.time,
     prereqs: spec.prereqs, concepts: spec.concepts, context: spec.summary, explain: spec.summary,
-    firstWin: '', problem: spec.summary, deliverableType: 'Specification only — build guide pending Decision 1',
-    deliverableWhy: '', dataSource: '', milestones: [], validation: spec.oracles, tools: [], extensions: [],
+    firstWin: NEW_GUIDES[spec.id] ? 'A live log–log plot of your own error curves, bending upward exactly where the computer runs out of digits.' : '', problem: spec.summary,
+    deliverableType: NEW_GUIDES[spec.id] ? 'Tested Python module + live pygame plot' : 'Specification — build guide coming with its stage',
+    deliverableWhy: '', dataSource: 'None — validated against exactly known answers.', milestones: [], validation: spec.oracles, tools: NEW_GUIDES[spec.id] ? ['numpy', 'pygame', 'pytest'] : [], extensions: [],
     origin: 'audit', auditItem: spec.item, summary: spec.summary, oracles: spec.oracles, labWidget: spec.labWidget,
   };
 }

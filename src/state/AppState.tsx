@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { buildProjects, type Project } from '../content/curriculum';
 import { setGuideProgress, setOS } from '../content/legacy/guideExtras.js';
+import { useSync, type SyncApi } from '../sync/useSync';
 import {
   browserStorage, load, save, pushHistory, scheduleReview, uid,
   type AppState, type JournalEntry, type Settings, type StorageAdapter, type HistoryItem,
@@ -22,6 +23,7 @@ interface Ctx {
   log: (item: Omit<HistoryItem, 'at'>) => void;
   review: (lessonId: string, result: 'good' | 'again') => void;
   saveError: string | null;
+  sync: SyncApi;
 }
 const AppCtx = createContext<Ctx | null>(null);
 
@@ -48,13 +50,15 @@ export function AppStateProvider({ children, storage = browserStorage() }: { chi
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  const update = useCallback((fn: (s: AppState) => AppState) => setState(s => fn(s)), []);
+  const update = useCallback((fn: (s: AppState) => AppState) => setState(s => { const n = fn(s); return n === s ? s : { ...n, updatedAt: new Date().toISOString() }; }), []);
+  const replace = useCallback((n: AppState) => setState(n), []);
+  const sync = useSync(state, replace);
   const projects = useMemo(() => buildProjects(state.approvals), [state.approvals]);
   const byId = useMemo(() => new Map(projects.map(p => [p.id, p])), [projects]);
   const done = useMemo(() => new Set(state.completed), [state.completed]);
 
   const value: Ctx = {
-    state, projects, done, update, saveError,
+    state, projects, done, update, saveError, sync,
     projectById: id => byId.get(id),
     toggleStep: (pid, key, label) => update(s => {
       const cur = { ...(s.guideProgress[pid] || {}) }; const on = !cur[key]; cur[key] = on;
@@ -76,7 +80,7 @@ export function AppStateProvider({ children, storage = browserStorage() }: { chi
       return entry;
     },
     updateJournal: (id, patch) => update(s => ({ ...s, journal: s.journal.map(j => (j.id === id ? { ...j, ...patch, updatedAt: new Date().toISOString() } : j)) })),
-    deleteJournal: id => update(s => ({ ...s, journal: s.journal.filter(j => j.id !== id) })),
+    deleteJournal: id => update(s => ({ ...s, journal: s.journal.filter(j => j.id !== id), journalDeleted: [...s.journalDeleted, id] })),
     log: item => update(s => ({ ...s, history: pushHistory(s, item) })),
     review: (lessonId, result) => update(s => ({ ...s, reviews: { ...s.reviews, [lessonId]: scheduleReview(s.reviews[lessonId], result) }, history: pushHistory(s, { kind: 'review', ref: lessonId, label: `Reviewed ${lessonId} (${result})` }) })),
   };

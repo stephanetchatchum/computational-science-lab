@@ -3,9 +3,44 @@ import { usePage } from '../components/Layout';
 import { useApp } from '../state/AppState';
 import { exportData, importData, emptyState, LEGACY_EXPORT_SNIPPET } from '../state/store';
 import { CodeBlock } from '../components/CodeBlock';
+import { configFromBuild, getConfig, setConfig, signIn, signOut, signUp } from '../sync/supabase';
+
+function Account() {
+  const { sync } = useApp();
+  const [url, setUrl] = useState(getConfig()?.url ?? ''); const [key, setKey] = useState(getConfig()?.key ?? '');
+  const [email, setEmail] = useState(''); const [pw, setPw] = useState('');
+  const [msg, setMsg] = useState<string | null>(null); const [busy, setBusy] = useState(false);
+  const run = async (f: () => Promise<unknown>, ok: string) => { setBusy(true); setMsg(null); try { await f(); setMsg(ok); } catch (e) { setMsg(e instanceof Error ? e.message : String(e)); } finally { setBusy(false); } };
+  if (!sync.configured) return (
+    <div className="stack sm">
+      <p style={{ fontSize: '.92rem' }}>Sync is off. Your progress is saved in this browser only. To use it on every device, connect a free Supabase project (one-time, about 10 minutes — see <b>docs/SUPABASE.md</b> in your repository).</p>
+      <label className="field">Project URL<input type="text" placeholder="https://xxxx.supabase.co" value={url} onChange={e => setUrl(e.target.value.trim())} /></label>
+      <label className="field">anon public key<input type="text" placeholder="eyJ…" value={key} onChange={e => setKey(e.target.value.trim())} /></label>
+      <div className="row"><button className="btn primary" disabled={!/^https:\/\/.+/.test(url) || key.length < 20} onClick={() => { setConfig({ url, key }); sync.refresh(); }}>Connect</button></div>
+    </div>);
+  if (!sync.user) return (
+    <div className="stack sm">
+      <p style={{ fontSize: '.92rem' }}>Connected to your Supabase project. Sign in, or create your account the first time.</p>
+      <label className="field">Email<input type="text" autoComplete="email" value={email} onChange={e => setEmail(e.target.value.trim())} /></label>
+      <label className="field">Password<input type="password" autoComplete="current-password" value={pw} onChange={e => setPw(e.target.value)} /></label>
+      <div className="row" style={{ flexWrap: 'wrap' }}>
+        <button className="btn primary" disabled={busy || !email || pw.length < 6} onClick={() => run(() => signIn(email, pw), 'Signed in.')}>Sign in</button>
+        <button className="btn" disabled={busy || !email || pw.length < 6} onClick={() => run(() => signUp(email, pw), 'Account created. If Supabase asks you to confirm your email, click the link, then sign in here.')}>Create account</button>
+        {!configFromBuild() && <button className="btn ghost small" onClick={() => { setConfig(null); sync.refresh(); }}>Disconnect project</button>}
+      </div>
+      {msg && <div className="notice cyan" role="status">{msg}</div>}
+    </div>);
+  return (
+    <div className="stack sm">
+      <p style={{ fontSize: '.92rem' }}>Signed in as <b>{sync.user.email}</b>. Progress, notes and settings sync automatically a few seconds after each change and whenever you return to this tab.</p>
+      <p className="faint" style={{ fontSize: '.85rem' }}>Status: {sync.status === 'synced' ? `synced ${sync.lastSync ? new Date(sync.lastSync).toLocaleTimeString() : ''}` : sync.status}{sync.error ? ` — ${sync.error}` : ''}</p>
+      <div className="row"><button className="btn" onClick={() => sync.now()} disabled={sync.status === 'syncing'}>Sync now</button><button className="btn ghost" onClick={() => run(() => signOut(), 'Signed out. Your progress stays in this browser.')}>Sign out</button></div>
+      {msg && <div className="notice cyan" role="status">{msg}</div>}
+    </div>);
+}
 
 export default function Settings() {
-  usePage('Settings & data');
+  usePage('Settings & account');
   const { state, setSettings, update } = useApp();
   const s = state.settings;
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -29,8 +64,13 @@ export default function Settings() {
   const readFile = (f: File | undefined) => { if (f) f.text().then(doImport); };
 
   return (
-    <div className="content narrow" style={{ padding: 0 }}>
-      <h1>Settings & data</h1>
+    <div className="page">
+      <h1>Settings & account</h1>
+
+      <section className="section">
+        <h2>Account and sync</h2>
+        <div className="panel"><Account /></div>
+      </section>
 
       <section className="section">
         <h2>Reading and display</h2>

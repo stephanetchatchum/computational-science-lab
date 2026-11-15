@@ -26,7 +26,7 @@ export function Setup() {
   };
   const ticks = Object.values(state.guideProgress.setup || {}).filter(Boolean).length;
   return (
-    <div className="content narrow" style={{ padding: 0 }}>
+    <div className="page">
       <div className="notice cyan" style={{ marginBottom: 18 }}>{ticks}/5 install steps ticked. Tick the box on each step; the Windows and Mac/Linux buttons switch every command on this page. The reader described below is the ▶ Listen button in the top bar.</div>
       <div ref={ref} className="legacy-html" onClick={onClick} onChange={onChange} dangerouslySetInnerHTML={{ __html: html }} />
     </div>
@@ -114,7 +114,7 @@ export function About() {
   const [open, setOpen] = useState<number | null>(null);
   const r: R = research;
   return (
-    <div className="content narrow" style={{ padding: 0 }}>
+    <div className="page">
       <h1>How this app teaches, and why</h1>
       <p className="notice" style={{ margin: '12px 0 18px' }}>{r.boundary}</p>
       <p className="muted" style={{ marginBottom: 12, fontSize: '.9rem' }}>Each feature below is tied to the evidence behind it. Strength labels: {Object.entries(r.evidenceKey).map(([k, v]) => <span key={k}><span className={`badge ${STRENGTH[k]}`}>{k}</span> {v} </span>)}</p>

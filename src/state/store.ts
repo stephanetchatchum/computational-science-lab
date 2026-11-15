@@ -42,6 +42,12 @@ export interface AppState {
   migratedFrom: string[];
   /** if–then plan for the next session */
   plan: { when: string; then: string } | null;
+  /** 2 = all audit items approved by the learner (15 Nov 2026) */
+  approvalsRev: number;
+  /** ISO time of the last local change (used by sync) */
+  updatedAt: string;
+  /** ids of deleted journal entries, so a sync never brings them back */
+  journalDeleted: string[];
 }
 
 export const defaultSettings = (): Settings => ({
@@ -50,8 +56,10 @@ export const defaultSettings = (): Settings => ({
 });
 
 export const emptyState = (): AppState => ({
+  // decisions: Decision 1 answered 'full guides' by the learner
+
   version: 1, completed: [], guideProgress: {}, milestones: {}, lessons: {}, reviews: {}, journal: [], history: [],
-  lastLocation: null, approvals: defaultApprovals(), decisions: {}, settings: defaultSettings(), migratedFrom: [], plan: null,
+  lastLocation: null, approvals: defaultApprovals(), decisions: { guides: 'full' }, settings: defaultSettings(), migratedFrom: [], plan: null, approvalsRev: 2, updatedAt: new Date(0).toISOString(), journalDeleted: [],
 });
 
 export interface StorageAdapter { get(key: string): string | null; set(key: string, value: string): void }
@@ -94,6 +102,9 @@ export function sanitize(input: unknown): AppState {
       session: { ...base.settings.session, ...(isObj(s.settings) && isObj((s.settings as Settings).session) ? (s.settings as Settings).session : {}) },
       tts: { ...base.settings.tts, ...(isObj(s.settings) && isObj((s.settings as Settings).tts) ? (s.settings as Settings).tts : {}) } },
     migratedFrom: strArr(s.migratedFrom),
+    approvalsRev: typeof s.approvalsRev === 'number' ? s.approvalsRev : 1,
+    updatedAt: typeof s.updatedAt === 'string' ? s.updatedAt : new Date(0).toISOString(),
+    journalDeleted: strArr(s.journalDeleted),
     plan: isObj(s.plan) && typeof (s.plan as { when?: unknown }).when === 'string' ? (s.plan as AppState['plan']) : null,
   };
 }
@@ -117,6 +128,9 @@ export function load(storage: StorageAdapter): AppState {
   let state = sanitize(parse(storage.get(STATE_KEY)));
   const firstRun = storage.get(STATE_KEY) === null;
   state = mergeLegacy(state, parse(storage.get(LEGACY_KEYS.completed)), parse(storage.get(LEGACY_KEYS.steps)), 'original-html (same browser)');
+  if (state.approvalsRev < 2) {           // learner approved every audit item on 15 Nov 2026
+    state = { ...state, approvalsRev: 2, approvals: defaultApprovals(), decisions: { guides: 'full', ...state.decisions } };
+  }
   if (firstRun) {
     const th = storage.get(LEGACY_KEYS.theme); if (th === 'light' || th === 'dark') state.settings.theme = th;
     const os = storage.get(LEGACY_KEYS.os); if (os === 'win' || os === 'unix') state.settings.os = os;

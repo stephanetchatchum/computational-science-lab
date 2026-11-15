@@ -3,19 +3,21 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { dueReviews } from '../state/store';
 import { QuickNote } from './QuickNote';
-import { PageReader } from './PageReader';
+import { ReaderBar } from './ReaderBar';
 
-const NAV: { group?: string; to: string; label: string; icon: string; end?: boolean }[] = [
+const NAV: { to: string; label: string; icon: string; end?: boolean }[] = [
   { to: '/', label: 'Today', icon: '◉', end: true },
-  { group: 'Learn', to: '/curriculum', label: 'Curriculum', icon: '▦' },
+  { to: '/curriculum', label: 'Curriculum', icon: '▦' },
   { to: '/lab', label: 'Concept lab', icon: '∿' },
   { to: '/review', label: 'Review', icon: '↻' },
   { to: '/journal', label: 'Journal', icon: '✎' },
-  { group: 'Reference', to: '/setup', label: 'Setup', icon: '⚙' },
-  { to: '/roadmaps', label: 'Roadmaps', icon: '⇢' },
+];
+const MORE: { to: string; label: string; icon: string }[] = [
+  { to: '/setup', label: 'Setup', icon: '⚙' },
+  { to: '/roadmaps', label: 'Roadmaps & pacing', icon: '⇢' },
   { to: '/capstone', label: 'Capstone', icon: '★' },
   { to: '/audit', label: 'Audit & decisions', icon: '◇' },
-  { group: 'You', to: '/settings', label: 'Settings & data', icon: '≡' },
+  { to: '/settings', label: 'Settings & account', icon: '≡' },
   { to: '/about', label: 'How this app teaches', icon: 'i' },
 ];
 
@@ -63,13 +65,13 @@ function Capture() {
   const loc = useLocation();
   const { state } = useApp();
   return (
-    <div className="capture">
+    <div style={{ position: 'relative' }}>
+      <button className="btn small ghost" onClick={() => setOpen(o => !o)} aria-expanded={open} title="Write down a stray thought without leaving this page" aria-label="Park a thought">✎<span className="hide-sm"> Park a thought</span></button>
       {open && <div className="capture-box">
-        <div className="row" style={{ marginBottom: 8 }}><b style={{ fontSize: '.85rem' }}>Park a thought</b><span className="spacer" /><button className="btn small ghost" onClick={() => setOpen(false)} aria-label="Close">✕</button></div>
-        <p className="faint" style={{ fontSize: '.78rem', marginBottom: 8 }}>Write it down so it stops pulling at you, then carry on. It goes to your journal.</p>
+        <div className="row" style={{ marginBottom: 6 }}><b style={{ fontSize: '.9rem' }}>Park a thought</b><span className="spacer" /><button className="btn small ghost" onClick={() => setOpen(false)} aria-label="Close">✕</button></div>
+        <p className="faint" style={{ fontSize: '.8rem', marginBottom: 8 }}>Write it down so it stops pulling at you. It goes to your journal.</p>
         <QuickNote compact defaultKind="parked" refTo={state.lastLocation ? { type: 'step', id: loc.pathname, label: state.lastLocation.label } : undefined} onSaved={() => setOpen(false)} />
       </div>}
-      {!open && <button className="fab" onClick={() => setOpen(true)} title="Capture a stray thought without leaving this page">✎ Park a thought</button>}
     </div>
   );
 }
@@ -78,6 +80,7 @@ export function Layout() {
   const { state, projects, done, setSettings, saveError } = useApp();
   const [crumbs, setCrumbsState] = useState<Trail>([]);
   const [menu, setMenu] = useState(false);
+  const [reading, setReading] = useState(false);
   const loc = useLocation();
   const mainRef = useRef<HTMLDivElement>(null);
   useEffect(() => { setMenu(false); if (!loc.search.includes('step=')) window.scrollTo({ top: 0 }); }, [loc.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -97,15 +100,15 @@ export function Layout() {
         </div>
         <nav className="nav">
           {NAV.map(n => (
-            <div key={n.to}>
-              {n.group && <div className="nav-group">{n.group}</div>}
-              <NavLink to={n.to} end={n.end}>
-                <span aria-hidden style={{ width: 16, textAlign: 'center', fontFamily: 'var(--font-mono)' }}>{n.icon}</span>{n.label}
-                {n.to === '/review' && due > 0 && <span className="count hot">{due}</span>}
-                {n.to === '/curriculum' && <span className="count">{required}</span>}
-              </NavLink>
-            </div>
+            <NavLink key={n.to} to={n.to} end={n.end}>
+              <span aria-hidden className="nav-i">{n.icon}</span>{n.label}
+              {n.to === '/review' && due > 0 && <span className="count hot">{due}</span>}
+            </NavLink>
           ))}
+          <details className="nav-more" open={MORE.some(m => loc.pathname.startsWith(m.to))}>
+            <summary>More</summary>
+            {MORE.map(n => <NavLink key={n.to} to={n.to}><span aria-hidden className="nav-i">{n.icon}</span>{n.label}</NavLink>)}
+          </details>
         </nav>
         <div className="side-progress">
           <div className="row"><span>Projects complete</span><span className="mono">{doneCount}/{required}</span></div>
@@ -117,14 +120,15 @@ export function Layout() {
         <header className="topbar">
           <button className="btn small ghost menu-btn" onClick={() => setMenu(true)} aria-label="Open navigation">☰</button>
           <nav className="crumbs" aria-label="Breadcrumb">{crumbs.map((c, i) => <span key={i}>{i > 0 && <span className="faint"> / </span>}{c.to ? <Link to={c.to}>{c.label}</Link> : <span style={{ color: 'var(--text)' }}>{c.label}</span>}</span>)}</nav>
-          <PageReader />
           <SessionTimer />
+          <Capture />
+          <button className={`btn small ${reading ? 'primary' : 'ghost'}`} onClick={() => setReading(r => !r)} aria-pressed={reading} title="Read this page aloud" aria-label="Listen">▶<span className="hide-sm"> Listen</span></button>
           <button className={`btn small ${focus ? 'primary' : 'ghost'}`} onClick={() => setSettings({ focusMode: !focus })} aria-pressed={focus} title="Hide navigation and secondary panels">{focus ? 'Exit focus' : 'Focus'}</button>
         </header>
         {saveError && <div className="notice red" role="alert" style={{ margin: '12px 28px 0' }}>Your progress could not be saved to this browser ({saveError}). Export a backup from Settings.</div>}
         <main id="main" className="content"><CrumbCtx.Provider value={setCrumbsState}><Outlet /></CrumbCtx.Provider></main>
       </div>
-      <Capture />
+      <ReaderBar open={reading} onClose={() => setReading(false)} />
     </div>
   );
 }

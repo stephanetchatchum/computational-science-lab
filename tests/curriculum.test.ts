@@ -43,7 +43,7 @@ describe('original content migrated intact', () => {
 
 describe('lessons', () => {
   it('one lesson per widget, with a valid answer', () => {
-    for (const name of Object.keys(VIZ)) {
+    for (const name of Object.keys(VIZ).filter(n => (VIZ[n] as { kind?: string }).kind !== 'step' && !n.includes('~'))) {
       const l = LESSONS[name]; expect(l, name).toBeTruthy();
       expect(l.predict.answer).toBeGreaterThanOrEqual(0); expect(l.predict.answer).toBeLessThan(l.predict.options.length);
       expect(l.recall.answer.length).toBeGreaterThan(10);

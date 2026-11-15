@@ -1,27 +1,31 @@
-import { GUIDES, isUnlocked, type Project } from '../content/curriculum';
+import { isUnlocked, type Project } from '../content/curriculum';
+import { effectiveGuide, hasGuide, type EffGuide } from '../content/guides';
 import type { AppState } from '../state/store';
 import { dueReviews } from '../state/store';
 
-/** The original app numbers steps s0 (setup) … sN+1 (git) and finish checks d0 … */
-export function stepCount(pid: string) { const g = GUIDES[pid]; return g ? g.steps.length + 2 : 0; }
-export function stepsDone(s: AppState, pid: string) {
-  const n = stepCount(pid), prog = s.guideProgress[pid] || {};
-  let d = 0; for (let i = 0; i < n; i++) if (prog['s' + i]) d++; return d;
+const cache = new WeakMap<object, Map<string, EffGuide | undefined>>();
+export function eg(s: AppState, p: Project): EffGuide | undefined {
+  let m = cache.get(s.approvals); if (!m) { m = new Map(); cache.set(s.approvals, m); }
+  if (!m.has(p.id)) m.set(p.id, effectiveGuide(p, s.approvals));
+  return m.get(p.id);
 }
-export function firstOpenStep(s: AppState, pid: string): number | null {
-  const n = stepCount(pid), prog = s.guideProgress[pid] || {};
-  for (let i = 0; i < n; i++) if (!prog['s' + i]) return i; return null;
+export function stepCount(s: AppState, p: Project) { return eg(s, p)?.steps.filter(x => !x.optional).length ?? 0; }
+export function stepsDone(s: AppState, p: Project) {
+  const g = eg(s, p); if (!g) return 0; const prog = s.guideProgress[p.id] || {};
+  return g.steps.filter(x => !x.optional && prog[x.key]).length;
 }
-export function checksDone(s: AppState, pid: string) {
-  const g = GUIDES[pid]; if (!g?.done) return { done: 0, total: 0 };
-  const prog = s.guideProgress[pid] || {}; return { done: g.done.filter((_, i) => prog['d' + i]).length, total: g.done.length };
+export function firstOpenStep(s: AppState, p: Project): number | null {
+  const g = eg(s, p); if (!g) return null; const prog = s.guideProgress[p.id] || {};
+  const i = g.steps.findIndex(x => !x.optional && !prog[x.key]); return i < 0 ? null : i;
+}
+export function checksDone(s: AppState, p: Project) {
+  const g = eg(s, p); if (!g) return { done: 0, total: 0 }; const prog = s.guideProgress[p.id] || {};
+  return { done: g.done.filter((_, i) => prog['d' + i]).length, total: g.done.length };
 }
 export function projectFraction(s: AppState, p: Project) {
   if (s.completed.includes(p.id)) return 1;
-  const n = stepCount(p.id); return n ? stepsDone(s, p.id) / n : 0;
+  const n = stepCount(s, p); return n ? stepsDone(s, p) / n : 0;
 }
-
-/** The project the learner is most plausibly working on now. */
 export function currentProject(s: AppState, projects: Project[]): Project | undefined {
   const done = new Set(s.completed);
   for (let i = s.history.length - 1; i >= 0; i--) {
@@ -33,7 +37,8 @@ export function currentProject(s: AppState, projects: Project[]): Project | unde
   return projects.find(p => !done.has(p.id) && isUnlocked(p, done));
 }
 
-export interface NextAction { title: string; detail: string; to: string; cta: string; kind: 'setup' | 'step' | 'finish' | 'spec' | 'review' | 'done' }
+export interface NextAction { title: string; detail: string; to: string; cta: string; kind: 'setup' | 'step' | 'finish' | 'spec' | 'done' }
+const clean = (t: string) => t.replace(/\*\*|\{\{|\}\}/g, '');
 export function nextAction(s: AppState, projects: Project[]): NextAction {
   const setupTicks = Object.values(s.guideProgress.setup || {}).filter(Boolean).length;
   if (s.completed.length === 0 && setupTicks === 0 && Object.keys(s.guideProgress).filter(k => k !== 'setup').length === 0) {
@@ -41,17 +46,13 @@ export function nextAction(s: AppState, projects: Project[]): NextAction {
   }
   const p = currentProject(s, projects);
   if (!p) return { kind: 'done', title: 'Every unlocked project is complete', detail: 'Choose your capstone direction.', to: '/capstone', cta: 'Open Capstone' };
-  if (p.origin === 'audit' || !GUIDES[p.id]) {
-    return { kind: 'spec', title: p.title, detail: 'This new project has a specification but no build guide yet. Read the spec and record your decision on build guides.', to: `/project/${p.id}`, cta: 'Open specification' };
-  }
-  const step = firstOpenStep(s, p.id);
-  if (step === null) {
-    const c = checksDone(s, p.id);
+  if (!hasGuide(p.id)) return { kind: 'spec', title: p.title, detail: 'The build guide for this new project arrives with its stage. Read the specification and explore its lab widget meanwhile.', to: `/project/${p.id}`, cta: 'Open specification' };
+  const i = firstOpenStep(s, p);
+  if (i === null) {
+    const c = checksDone(s, p);
     return { kind: 'finish', title: p.title, detail: `All steps ticked. Confirm the finish checklist (${c.done}/${c.total}) and mark the project complete.`, to: `/project/${p.id}?tab=finish`, cta: 'Verify and finish' };
   }
-  const g = GUIDES[p.id];
-  const label = step === 0 ? 'Create the project folder and install what it needs' : step === g.steps.length + 1 ? 'Write the README and save your work with git' : g.steps[step - 1].t;
-  return { kind: 'step', title: `Step ${step}: ${label.replace(/\*\*|\{\{|\}\}/g, '')}`, detail: p.title, to: `/project/${p.id}?tab=build&step=${step}`, cta: 'Resume this step' };
+  const st = eg(s, p)!.steps[i];
+  return { kind: 'step', title: `Step ${i}: ${clean(st.t)}`, detail: p.title, to: `/project/${p.id}?tab=build&step=${i}`, cta: 'Resume this step' };
 }
-
 export function reviewSummary(s: AppState) { return dueReviews(s).length; }
