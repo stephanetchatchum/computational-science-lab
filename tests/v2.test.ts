@@ -10,7 +10,7 @@ import '../src/lab/stepWidgets2';
 import { solve2, elimCount, singularValues, vander } from '../src/lab/stepWidgets2';
 import { mergeStates, decide } from '../src/sync/merge';
 import { emptyState, load, memoryStorage, save, STATE_KEY } from '../src/state/store';
-import { spokenCode } from '../src/lib/reader';
+import { spokenCode, sentences, wordSchedule } from '../src/lib/reader';
 
 const all = defaultApprovals();
 const none: Approvals = Object.fromEntries(AUDIT_ITEMS.map(i => [i.id, 'pending']));
@@ -87,6 +87,26 @@ describe('Stage 2 visual maths (matches scripts/verify_oracles.py)', () => {
   it('cond(V) for degree 8 on 20 points is about 6e5, and squares for VᵀV', () => {
     const xs = Array.from({ length: 20 }, (_, i) => i / 19); const s = singularValues(vander(xs, 8)); const k = s[0] / s.at(-1)!;
     expect(k).toBeGreaterThan(5e5); expect(k).toBeLessThan(7e5);
+  });
+});
+
+describe('read-aloud sentences and words', () => {
+  it('splits sentences, keeps decimals, file names and e.g. intact, and offsets point at the text', () => {
+    const t = 'Set h = 0.5 and run src/main.py now. It prints 3.14, e.g. pi! Done?';
+    const ss = sentences(t);
+    expect(ss.map(x => x.t)).toEqual(['Set h = 0.5 and run src/main.py now.', 'It prints 3.14, e.g. pi!', 'Done?']);
+    for (const x of ss) expect(t.slice(x.s, x.s + x.t.length)).toBe(x.t);
+  });
+  it('cuts very long sentences at a comma, never mid-word', () => {
+    const t = Array.from({ length: 30 }, (_, i) => `clause number ${i}`).join(', ') + '.';
+    const ss = sentences(t);
+    expect(ss.length).toBeGreaterThan(1);
+    for (const x of ss) { expect(x.t.length).toBeLessThanOrEqual(230); expect(t.slice(x.s, x.s + x.t.length)).toBe(x.t); }
+    expect(ss.map(x => x.t).join(' ')).toBe(t);
+  });
+  it('estimated word schedule starts each word in order', () => {
+    const w = wordSchedule('One two, three.');
+    expect(w.map(x => x.at)).toEqual([0, 4, 9]); expect(w[0].time).toBe(0); expect(w[2].time).toBeGreaterThan(w[1].time);
   });
 });
 

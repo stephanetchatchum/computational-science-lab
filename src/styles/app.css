@@ -404,7 +404,10 @@ table.t th{font-family:var(--font-mono); font-size:.7rem; text-transform:upperca
 .reader-bar select{width:auto; padding:5px 8px; font-size:.84rem; max-width:200px;}
 .rstatus{font-family:var(--font-mono); font-size:.76rem; color:var(--text-faint); min-width:96px; text-align:center;}
 .rsep{width:1px; height:22px; background:var(--line-2); margin:0 2px;}
-.tts-active{background:rgba(227,179,65,.12); box-shadow:0 0 0 4px rgba(227,179,65,.12); border-radius:4px;}
+.tts-active{box-shadow:-6px 0 0 -2px rgba(227,179,65,.55); border-radius:2px;}
+.tts-active.tts-whole{background:rgba(227,179,65,.16); box-shadow:0 0 0 4px rgba(227,179,65,.16);}
+/* Same colour, two strengths: the sentence being read is light, the word being spoken is deep. */
+::highlight(tts-sentence){background-color:rgba(227,179,65,.22);}
 ::highlight(tts-word){background-color:#e3b341; color:#111;}
 details > summary{cursor:pointer;}
 .quiet{border:0; background:transparent; padding:0;}
