@@ -1,7 +1,7 @@
 import json, os
-import requests
 
 def fetch_monthly_temp(lat, lon, start_year, end_year):
+    import requests  # only needed when downloading
     path = os.path.join("data", f"monthly_{lat}_{lon}_{start_year}_{end_year}.json")
     if os.path.exists(path): return tuple(json.load(open(path)))
     url = f"https://power.larc.nasa.gov/api/temporal/monthly/point?parameters=T2M&community=RE&longitude={lon}&latitude={lat}&start={start_year}&end={end_year}&format=JSON"

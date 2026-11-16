@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install numpy scipy pytest && python scripts/verify_oracles.py
+      - run: pip install numpy scipy pytest requests && python scripts/verify_oracles.py
       - run: npm ci
       - run: bash scripts/verify_guides.sh
       - run: npm test

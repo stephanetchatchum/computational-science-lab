@@ -1,7 +1,7 @@
 import io, os, zipfile
-import requests
 
 def get_towns(country_code, how_many):
+    import requests  # only needed when downloading
     path = os.path.join("data", "cities15000.txt")
     if not os.path.exists(path):
         content = requests.get("https://download.geonames.org/export/dump/cities15000.zip").content

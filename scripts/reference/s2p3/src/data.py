@@ -1,7 +1,7 @@
 import csv, json, os
-import requests
 
 def get_co2(country):
+    import requests  # only needed when downloading
     path = os.path.join("data", f"co2_{country}.json")
     if os.path.exists(path): return [tuple(x) for x in json.load(open(path))]
     text = requests.get("https://raw.githubusercontent.com/owid/co2-data/master/owid-co2-data.csv").text
