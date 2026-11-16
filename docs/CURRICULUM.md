@@ -42,7 +42,8 @@ Approved changes never overwrite the original. In the build guide they appear as
 | 1 | ✅ | ✅ s1p1 (B6), s1p2 (X1 ε and best h), s1p3 (A1 fix, B2 semi-implicit), s1p4 (B3 spatial hash) | ✅ s1p6 full guide |
 | 2 | ✅ | ✅ s2p1 (X1 flop count), s2p2 (X1 curse of dimensionality), s2p3 (B5 QR vs normal equations), s2p4 (A1 dry spells, E1 optional swarm), s2p5 (B3 shortest paths, E1 optional) | ✅ s2p6 full guide (Fourier, real CO₂ and Kigali data) |
 | 3 | ✅ | ✅ s3p1 (B1 stiffness + backward Euler, B8 the 15 derived), s3p2 (B2 leapfrog over 1000 orbits, A1 Kepler text), s3p3 (B6 R_eff + Poisson fit, A3 OWID data), s3p4 (B8 Jacobian and period), s3p5 (B9 hourly data + real gradient descent, E1 optional ball) | — |
-| 4–6 | original demos only | shown as checkboxes | s4p8, s4p9, s5p7 still specifications |
+| 4 | ✅ | ✅ s4p1 (B1 implicit + Thomas, Richardson order; B8 von Neumann), s4p2 (B8 numerical diffusion, Péclet; A4 impossible check fixed), s4p3 (B7 Gillespie; A1 GeoNames), s4p4 (B5 sparse 2000-node bridge; A4 singular trusses fixed), s4p5 (B6 ties, prewhitening, Benjamini–Hochberg; B5 EOF; A1 + Decision 4), s4p6 (B8 2D CFL), s4p7 (B8 Turing analysis) | ✅ s4p8 Poisson + iterative solvers, ✅ s4p9 Ising |
+| 5–6 | original demos only | shown as checkboxes | s5p7 still a specification |
 
 Every new expected value is recomputed by `scripts/verify_oracles.py`. From Stage 3 on, `scripts/verify_guides.sh` also extracts the exact pytest files from the guides and runs them against reference solutions in `scripts/reference/` (both run in CI). The "N passed" finish check is computed from the tests actually in the guide.
 
@@ -57,6 +58,17 @@ Reasons are shown on the Audit page. Every decision can still be changed there.
 
 ## Still to build (next stages)
 
-- Step visuals and rewritten steps for Stages 4–6, one stage at a time, same method as Stages 0–3.
-- Full guides for s4p8 and s4p9 (Stage 4), s5p7 (Stage 5), with verified expected values.
+- Step visuals and rewritten steps for Stages 5–6, one stage at a time, same method as Stages 0–4.
+- The full guide for s5p7 (Stage 5), with verified expected values.
 - The s5p6 shallow-water rewrite (D1).
+
+## Errors found in the original guides (audit item A4)
+
+Running every Stage 3–4 guide test against a reference solution found two original guides whose tests could never pass:
+
+- **s4p2** demanded variance < 0.35 after pure upwind advection; the scheme's own numerical diffusion makes it exactly 0.74.
+- **s4p4**: the hand truss lies in one plane and the 3D bridge had no sway bracing, so both stiffness matrices were singular.
+
+Both are corrected under A4. Stages 0–2 were checked with `verify_oracles.py` (every new value) but their original tests have not yet been run against reference solutions.
+
+Two promises in the audit's new-project specs were also corrected after measurement: CG on the Poisson problem takes about 1.6N iterations (not ≤ N), and the checkerboard Metropolis sweep is wrong on a 2 × 2 lattice (it is checked on 4 × 4 instead).

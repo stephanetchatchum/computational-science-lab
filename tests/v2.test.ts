@@ -9,6 +9,7 @@ import '../src/lab/newWidgets';
 import '../src/lab/stepWidgets2';
 import { solve2, elimCount, singularValues, vander } from '../src/lab/stepWidgets2';
 import * as W3 from '../src/lab/stepWidgets3';
+import * as W4 from '../src/lab/stepWidgets4';
 import { mergeStates, decide } from '../src/sync/merge';
 import { emptyState, load, memoryStorage, save, STATE_KEY } from '../src/state/store';
 import { spokenCode, sentences, wordSchedule } from '../src/lib/reader';
@@ -16,7 +17,7 @@ import { spokenCode, sentences, wordSchedule } from '../src/lib/reader';
 const all = defaultApprovals();
 const none: Approvals = Object.fromEntries(AUDIT_ITEMS.map(i => [i.id, 'pending']));
 const P = (id: string) => buildProjects(all).find(p => p.id === id)!;
-const STAGE01 = ['s0p1', 's0p2', 's0p3', 's0p4', 's1p1', 's1p2', 's1p3', 's1p4', 's1p5', 's1p6', 's2p1', 's2p2', 's2p3', 's2p4', 's2p5', 's2p6', 's3p1', 's3p2', 's3p3', 's3p4', 's3p5'];
+const STAGE01 = ['s0p1', 's0p2', 's0p3', 's0p4', 's1p1', 's1p2', 's1p3', 's1p4', 's1p5', 's1p6', 's2p1', 's2p2', 's2p3', 's2p4', 's2p5', 's2p6', 's3p1', 's3p2', 's3p3', 's3p4', 's3p5', 's4p1', 's4p2', 's4p3', 's4p4', 's4p5', 's4p6', 's4p7', 's4p8', 's4p9'];
 
 describe('effective guides', () => {
   it('every audit item is approved by default (your decision)', () => {
@@ -38,7 +39,7 @@ describe('effective guides', () => {
       g.steps.slice(1, -1).forEach((s, i) => { expect(s.do).toEqual(GUIDES[id].steps[i].do); expect(s.code).toEqual(GUIDES[id].steps[i].code); });
     }
   });
-  it('every Stage 0–3 build step (including the new ones) has a visual, and every visual exists', () => {
+  it('every Stage 0–4 build step (including the new ones) has a visual, and every visual exists', () => {
     for (const id of STAGE01) {
       const g = effectiveGuide(P(id), all)!;
       for (const s of g.steps.filter(x => x.origin === 'original' || x.origin === 'added')) {
@@ -60,10 +61,10 @@ describe('effective guides', () => {
       expect(a.step.code ?? '').toMatch(/def test_/);
     }
   });
-  it('s1p6 and s2p6 have full guides; the other three new projects remain specifications', () => {
-    for (const id of ['s1p6', 's2p6']) { expect(hasGuide(id)).toBe(true); expect(NEW_GUIDES[id].steps.length).toBe(Object.keys(NEW_STEP_VISUALS[id]).length); expect(P(id).firstWin).not.toBe(''); }
+  it('s1p6, s2p6, s4p8 and s4p9 have full guides; s5p7 remains a specification', () => {
+    for (const id of ['s1p6', 's2p6', 's4p8', 's4p9']) { expect(hasGuide(id)).toBe(true); expect(NEW_GUIDES[id].steps.length).toBe(Object.keys(NEW_STEP_VISUALS[id]).length); expect(P(id).firstWin).not.toBe(''); }
     expect(P('s2p6').firstWin).toMatch(/CO₂/);
-    for (const id of ['s4p8', 's4p9', 's5p7']) expect(hasGuide(id)).toBe(false);
+    expect(hasGuide('s5p7')).toBe(false);
     expect(Object.keys(STEP_VISUALS).length).toBeGreaterThanOrEqual(9);
   });
 });
@@ -151,6 +152,24 @@ describe('Stage 3 visual maths (matches the reference solutions)', () => {
     const g = W3.gridBest(); expect(g[0]).toBeCloseTo(3050, 6);
     for (const st of [[4, 20], [1, 2]]) { const e = W3.gradientPath(st[0], st[1]).at(-1)!; expect(Math.abs(W3.costOf(e[0], e[1]) / g[0] - 1)).toBeLessThan(0.02); expect(W3.shortFrac(e[0], e[1])).toBeLessThan(0.052); }
   });
+});
+
+describe('Stage 4 visual maths (matches the reference solutions)', () => {
+  it('upwind smear: variance 0.74 after 10 s, as vΔx(1 − C)/2 predicts', () => expect(W4.upwindVariance(0.05, 0.001).v).toBeCloseTo(0.74, 3));
+  it('SOR, Jacobi and CG iteration counts match the Python reference (N = 15, f = 1)', () => {
+    const f = new Float64Array(225).fill(1);
+    expect(W4.jacobiHist(f, 15).length).toBe(705); expect(W4.sorSolve(f, 15, 1).it).toBe(362); expect(W4.sorSolve(f, 15, W4.omegaOpt(15)).it).toBe(48); expect(W4.cgHist(f, 15).length).toBe(24);
+  });
+  it('the 2D truss solves, balances the load, and becomes singular without its diagonal', () => {
+    const R = W4.truss2d(150, false)!; expect(R).not.toBeNull(); expect(W4.truss2d(150, true)).toBeNull();
+    const R2 = W4.truss2d(300, false)!; R.forces.forEach((f, i) => expect(R2.forces[i]).toBeCloseTo(2 * f, 6));
+  });
+  it('Turing pair (0.055, 0.062) grows with Du/Dv = 2 and not with Du = Dv; spots have no flat state', () => {
+    const [U, V] = W4.uniformStates(0.055, 0.062)[0]; let g = -1, ge = -1;
+    for (let i = 0; i <= 320; i++) { g = Math.max(g, W4.growthAt(U, V, 0.055, 0.062, 1, 0.5, i / 200)); ge = Math.max(ge, W4.growthAt(U, V, 0.055, 0.062, 1, 1, i / 200)); }
+    expect(g).toBeGreaterThan(0.005); expect(ge).toBeLessThan(0); expect(W4.uniformStates(0.03, 0.062)).toEqual([]);
+  });
+  it('Mann–Kendall S and BH match the hand checks', () => { expect(W4.mkS([1, 3, 2, 4])).toBe(4); expect(W4.mkZP([1, 2, 3, 4, 5]).z).toBeCloseTo(2.2045, 3); expect(W4.bh([0.001, 0.008, 0.039, 0.041, 0.042, 0.06, 0.074, 0.205, 0.212, 0.216]).filter(Boolean).length).toBe(2); });
 });
 
 describe('sync', () => {

@@ -37,6 +37,7 @@ function newProject(spec: typeof NEW_PROJECTS[number]): Project {
 /**
  * Audit A1 ("align specs with guides"), following Decisions 3 and 4 (made by Claude at the learner's request, Nov 2026).
  * Decision 3: s2p5 keeps GeoNames towns and is honest that its links are a proximity graph, not roads.
+ * Decision 4: s4p5 keeps the 8 × 8 NASA POWER grid and the spec is rewritten to match.
  */
 const SPEC_ALIGN: Record<string, { item: string; apply: (p: Project) => Partial<Project> }> = {
   s2p5: { item: 'A1', apply: p => ({
@@ -47,6 +48,18 @@ const SPEC_ALIGN: Record<string, { item: string; apply: (p: Project) => Partial<
     dataSource: 'GeoNames cities15000: real towns and coordinates. Links join each town to its nearest neighbours, so this is a proximity graph, not roads. A copy is kept in the course repository.',
     milestones: p.milestones.map((m, i) => i === 0 ? 'Build a real settlement network for a region: GeoNames towns, each linked to its nearest neighbours (a proximity graph), stored as an adjacency matrix.' : m.replace('Draw the real road network', 'Draw the real town network')),
     validation: p.validation.map((v, i) => i === 1 ? 'Sanity-check centrality against real-world knowledge of the region (a known regional hub town should not rank as structurally unimportant), and say plainly that links are proximity, not roads.' : v),
+  }) },
+  s4p3: { item: 'A1', apply: p => ({
+    problem: p.problem.replace('download real gridded population data for one African region of your choice from WorldPop, identify the 10 to 30 highest-population grid cells as your settlements,', 'take the 10 to 30 largest towns of one African country from GeoNames (the town list you already downloaded in the town-network project), with their real populations as your settlements,'),
+    dataSource: 'GeoNames towns and populations (reused from the town-network project). Travel between towns comes from a gravity model, an assumption, not measured mobility.',
+    milestones: p.milestones.map((m, i) => i === 0 ? 'Load real towns and populations for a region (GeoNames) and place a manageable number of agents in them.' : m),
+  }) },
+  s4p5: { item: 'A1', apply: p => ({
+    title: 'Detecting Real Precipitation Trends Over East Africa (NASA POWER Grid)',
+    explain: p.explain.replace('with access to satellite weather data covering the entire East African region, not just one weather station, but a whole grid of thousands of locations at once.', 'with satellite-based rainfall for a grid of 64 places across East Africa, not just one weather station.'),
+    problem: p.problem.replace('Download a real gridded precipitation reanalysis or satellite dataset, for example CHIRPS or ERA5, covering East Africa for at least 30 years, in NetCDF format.', 'Download annual rainfall for an 8 × 8 grid of points over East Africa (latitudes −4 to 10, longitudes 30 to 44) from NASA POWER for 1991–2023.').replace('available in the pymannkendall package or implementable from its published formula', 'implemented by you from its published formula, with tie correction, prewhitening and a false-discovery-rate step'),
+    dataSource: 'NASA POWER monthly PRECTOTCORR for an 8 × 8 grid over East Africa, 1991–2023 (Decision 4). A copy is kept in the course repository.',
+    milestones: p.milestones.map((m, i) => i === 0 ? 'Download and correctly load annual rainfall for the 64-point NASA POWER grid over East Africa, 1991–2023.' : m),
   }) },
 };
 
