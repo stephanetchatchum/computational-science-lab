@@ -64,11 +64,19 @@ Reasons are shown on the Audit page. Every decision can still be changed there.
 
 ## Errors found in the original guides (audit item A4)
 
-Running every Stage 3–4 guide test against a reference solution found two original guides whose tests could never pass:
+`scripts/verify_guides.sh` extracts the exact pytest files a learner builds from every guide (Stages 0–4, all audit items approved) and runs them against reference solutions in `scripts/reference/`, written to follow each guide literally. All 30 projects pass (204 tests). Getting there found these errors in the original guides, all corrected under A4:
 
-- **s4p2** demanded variance < 0.35 after pure upwind advection; the scheme's own numerical diffusion makes it exactly 0.74.
-- **s4p4**: the hand truss lies in one plane and the 3D bridge had no sway bracing, so both stiffness matrices were singular.
+| Project | Problem | Fix |
+|---|---|---|
+| s0p2 | Test calls `simulate(…, phi=90)`; the guide names the argument `phi_deg` | Test uses `phi_deg` |
+| s0p4 | The fifth test was described in words only | Written out as code |
+| s1p3 | Damped energy falls below 0.05 after ~8 s, not ~20 s | Expected text corrected |
+| s2p1 | “2 passed” after the naive solver, but the test file cannot import yet | Expected text corrected |
+| s2p2 | Half-width of the sinc integral is ~0.002, not ~0.0008 | Expected text corrected |
+| s2p4 | Toy-matrix stationary shares are 0.65, 0.24, 0.11, not 0.58, 0.28, 0.14 | Expected text corrected |
+| s4p2 | “variance < 0.35” is impossible: upwind’s own smear gives exactly 0.74 | Bound relaxed; the B8 step predicts 0.74 |
+| s4p4 | Hand truss and 3D bridge are mechanisms (singular stiffness matrix) | Node 2 locked in z; three sway braces |
 
-Both are corrected under A4. Stages 0–2 were checked with `verify_oracles.py` (every new value) but their original tests have not yet been run against reference solutions.
+Not yet checked this way: the nine optional “2D version” guides (Decision 2), and Stages 5–6 (to be done as each stage is built).
 
 Two promises in the audit's new-project specs were also corrected after measurement: CG on the Poisson problem takes about 1.6N iterations (not ≤ N), and the checkerboard Metropolis sweep is wrong on a 2 × 2 lattice (it is checked on 4 × 4 instead).

@@ -1,3 +1,19 @@
+try:
+    from src.solvers import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.solvers': raise
+try:
+    from src.seir import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.seir': raise
+try:
+    from src.blobs import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.blobs': raise
+try:
+    from src.data import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.data': raise
 import numpy as np
 from pytest import approx
 from src.seir import seir_rhs, simulate_seir, peak, r0

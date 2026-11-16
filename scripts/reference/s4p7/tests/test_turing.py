@@ -1,3 +1,7 @@
+try:
+    from src.gray_scott import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.gray_scott': raise
 from src.gray_scott import PRESETS
 from src.turing import uniform_states, growth_rate
 

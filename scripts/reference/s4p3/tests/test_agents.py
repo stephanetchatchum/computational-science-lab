@@ -1,3 +1,15 @@
+try:
+    from src.towns import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.towns': raise
+try:
+    from src.network import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.network': raise
+try:
+    from src.agents import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.agents': raise
 import numpy as np
 from pytest import approx
 from src.network import gravity_matrix

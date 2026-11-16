@@ -1,3 +1,7 @@
+try:
+    from src.plume import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.plume': raise
 from pytest import approx
 from src.plume import run, mean_and_variance
 

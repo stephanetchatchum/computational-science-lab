@@ -1,3 +1,7 @@
+try:
+    from src.wave import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.wave': raise
 import math
 import numpy as np
 import pytest

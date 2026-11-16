@@ -4,6 +4,7 @@
  */
 import type { Guide, GuideStep } from './legacy/curriculum.js';
 import type { AddedStep, GuidePatch, Visual } from './stage01';
+import { GUIDES as LEGACY } from './legacy/curriculum.js';
 
 const S = (t: string, why: string, d: string[], run: string | null, see: string | null, hint: string | null, code: string | null = null): GuideStep =>
   ({ t, why, do: d, run, see, hint, code });
@@ -43,7 +44,9 @@ export const STEP_VISUALS: Record<string, Record<number, Visual>> = {
 };
 
 export const PATCHES: Record<string, GuidePatch> = {
-  s2p4: { steps: { 3: { item: 'E1', optional: 'Optional (audit E1): the walker swarm is a decorative view of the same numbers. The exact stationary shares in step 5 carry the science.' } } },
+  s2p4: { steps: { 3: { item: 'E1', optional: 'Optional (audit E1): the walker swarm is a decorative view of the same numbers. The exact stationary shares in step 5 carry the science.', see: LEGACY.s2p4.steps[3].see!.replace('about **0.58, 0.28, 0.14**', 'about **0.65, 0.24, 0.11** (corrected, audit A4)') } } },
+  s2p1: { steps: { 1: { item: 'A4', see: 'A red **ImportError**: the test file also imports {{gaussian_pivoted}} and {{lu_decompose}}, which do not exist yet, so nothing can run. That is expected; write them in the next step. (To try the naive solver now, run it from a Python prompt on the first check’s matrix.)' } } },
+  s2p2: { steps: { 5: { item: 'A4', see: LEGACY.s2p2.steps[5].see!.replace('a half-width near **0.0008**', 'a half-width near **0.002**') } } },
   s2p5: { steps: { 5: { item: 'A1', why: 'Towns as dots, links as lines. The links join nearest neighbours; they are not roads.' }, 6: { item: 'E1', optional: 'Optional (audit E1): live walkers. Keep the README comparison of degree against eigenvector centrality, which the checks already cover.' } } },
 };
 

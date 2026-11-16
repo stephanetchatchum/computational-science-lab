@@ -1,3 +1,7 @@
+try:
+    from src.gray_scott import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.gray_scott': raise
 import numpy as np
 from pytest import approx
 from src.gray_scott import gs_step, laplacian, PRESETS, new_state

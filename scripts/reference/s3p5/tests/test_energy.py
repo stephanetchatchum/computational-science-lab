@@ -1,3 +1,11 @@
+try:
+    from src.nasa import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.nasa': raise
+try:
+    from src.energy import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.energy': raise
 from pytest import approx
 from src.energy import simulate, cost, brute_force
 

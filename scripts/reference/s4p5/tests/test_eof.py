@@ -1,3 +1,15 @@
+try:
+    from src.regression import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.regression': raise
+try:
+    from src.mk import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.mk': raise
+try:
+    from src.nasa import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.nasa': raise
 import numpy as np
 from pytest import approx
 from src.eof import eofs

@@ -5,6 +5,7 @@
  * so no existing tick moves to a different step.
  */
 import type { Guide, GuideStep } from './legacy/curriculum.js';
+import { GUIDES as LEGACY } from './legacy/curriculum.js';
 
 export interface Visual { widget: string; caption: string; preset?: Record<string, number> }
 export interface AddedStep { key: string; item: string; after: number; step: GuideStep; visual?: Visual }
@@ -104,17 +105,20 @@ export const PATCHES: Record<string, GuidePatch> = {
     },
     done: { 4: { item: 'A1', text: 'Merging the kg blob with a m/s blob using **+** makes both flash red and jump apart; using **x** makes a new blob in **kg*m/s**.' } },
   },
-  s0p2: { spec: { deliverableWhy: { item: 'A1', text: 'A playable 3D cannon: you set the angle and speed, fire, and watch the shell fly. The time-stepped physics you wrote becomes something you can see from any angle and check against the range formula.' } } },
+  s0p2: { steps: { 0: { item: 'A4', code: LEGACY.s0p2.steps[0].code!.replace('phi=0)', 'phi_deg=0)').replace('phi=90)', 'phi_deg=90)') } },
+    spec: { deliverableWhy: { item: 'A1', text: 'A playable 3D cannon: you set the angle and speed, fire, and watch the shell fly. The time-stepped physics you wrote becomes something you can see from any angle and check against the range formula.' } } },
   s0p3: {
     spec: { deliverableWhy: { item: 'A1', text: 'A pygame window where the two models grow side by side as swarms, plus the fitted curves against real data, so the difference between "unlimited" and "limited" growth is something you watch, not only a number.' } },
     steps: { 3: { item: 'E1', optional: 'Optional (audit E1): a decorative visual. The fitted curves in step 7 carry the science.' } },
     done: { 1: { item: 'E1', text: 'If you built the optional swarms: the left keeps growing, the right stops at 100 dots.' } },
   },
   s0p4: {
-    steps: { 6: { item: 'E1', optional: 'Optional (audit E1): the other two dials repeat the same idea. One dial is enough.' } },
+    steps: { 7: { item: 'A4', see: 'All checks pass. Rain settles on a LATER day than temperature. Write the three settle days in **README.md**.', code: 'import numpy as np\n\ndef test_matches_numpy():\n    xs = list(np.random.default_rng(1).random(100))\n    assert mean(xs) == approx(np.mean(xs))\n    assert std(xs) == approx(np.std(xs))' },
+      6: { item: 'E1', optional: 'Optional (audit E1): the other two dials repeat the same idea. One dial is enough.' } },
     done: { 2: { item: 'E1', text: 'At least one dial moves, with a bright mean needle and a faint std needle (three dials if you did the optional step).' } },
   },
   s1p3: {
+    steps: { 5: { item: 'A4', see: 'With damping ON the bounce slowly dies. The energy bar shrinks toward zero. At dt 0.01 it falls below **0.05** after about **8 seconds** (the energy decays roughly like 0.5·e^(−0.3t)).' } },
     stuck: { 1: { item: 'A1', a: 'Energy stays close to 0.5 and only wobbles.', b: 'You used the NEW x to compute the new v (or the new v for the new x). That is semi-implicit Euler: its energy stays bounded, within about 0.0025 of 0.5 at dt 0.01, but it is not exactly constant. Forward Euler must use the OLD values; that growing energy is the bug this project wants you to see.' } },
   },
 };

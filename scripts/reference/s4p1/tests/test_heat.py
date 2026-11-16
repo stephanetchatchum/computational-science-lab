@@ -1,3 +1,7 @@
+try:
+    from src.heat import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.heat': raise
 import math
 import numpy as np
 from pytest import approx

@@ -17,7 +17,11 @@ try {
       files[f] = (files[f] ? files[f] + '\n\n' : '') + s.code;
     }
     const dir = path.join('scripts', 'reference', p.id, 'tests'); fs.mkdirSync(dir, { recursive: true });
-    for (const [f, code] of Object.entries(files)) fs.writeFileSync(path.join(dir, f), code + '\n');
+    // Guides often say "add X to the import line" in prose; the learner's file then imports it. Mirror that by
+    // importing every name from the project's own modules first (explicit imports in the code still run as written).
+    const mods = (g.guide.files ?? []).map(([f]) => f).filter(f => /^src\/(?!main|__init__).*\.py$/.test(f)).map(f => f.slice(4, -3).replace(/\//g, '.'));
+    const prelude = mods.map(m => `try:\n    from src.${m} import *  # noqa  (see dump_guide_tests.mjs)\nexcept ModuleNotFoundError as e:\n    if e.name != 'src.${m}': raise`).join('\n');
+    for (const [f, code] of Object.entries(files)) fs.writeFileSync(path.join(dir, f), (prelude ? prelude + '\n' : '') + code + '\n');
     console.log(p.id, Object.keys(files).join(', '));
   }
 } finally { await server.close(); }

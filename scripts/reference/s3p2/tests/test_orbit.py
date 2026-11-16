@@ -1,3 +1,7 @@
+try:
+    from src.orbit import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.orbit': raise
 import math
 from pytest import approx
 from src.orbit import simulate, energy, orbit_period, semi_major_axis, swept_area, ang_momentum

@@ -90,7 +90,7 @@ describe('finish checks', () => {
       const g = effectiveGuide(p, ap); if (!g) continue;
       const n = g.steps.reduce((s, x) => s + ((x.code ?? '').match(/^def test_/gm) ?? []).length, 0);
       const m = g.done.map(x => x.text).join(' ').match(/\*\*(\d+) passed\*\*/);
-      if (m && !(ap === none && p.id === 's0p4')) expect(Number(m[1]), p.id).toBe(n); // original s0p4 text says 5 for 4 tests (fixed under A1)
+      if (m && !(ap === none && p.id === 's0p4')) expect(Number(m[1]), p.id).toBe(n); // original s0p4: its 5th test is described in words only; A4 adds it as code
     }
   });
 });

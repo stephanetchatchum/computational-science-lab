@@ -1,3 +1,19 @@
+try:
+    from src.solvers import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.solvers': raise
+try:
+    from src.lv import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.lv': raise
+try:
+    from src.chase import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.chase': raise
+try:
+    from src.data import *  # noqa  (see dump_guide_tests.mjs)
+except ModuleNotFoundError as e:
+    if e.name != 'src.data': raise
 from pytest import approx
 from src.lv import simulate_lv, fixed_point, period
 
