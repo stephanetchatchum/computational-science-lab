@@ -26,9 +26,12 @@ function visualsFor(id: string, i: number): Visual[] {
   const legacy = STEP_VIZ[id]?.[i];
   if (legacy) out.push({ widget: legacy[0], caption: legacy[1] });
   const own = STEP_VISUALS[id]?.[i] ?? NEW_STEP_VISUALS[id]?.[i];
-  if (own && !out.some(v => v.widget === own.widget)) out.push(own);
+  if (own && !out.some(v => v.widget === own.widget)) { if (own.lead) out.unshift(own); else out.push(own); }
   return out;
 }
+
+const SETUP_VISUAL: Visual = { widget: 'folder', caption: 'What this block builds: the folder, a private Python, empty files and your first git save.' };
+const GIT_VISUAL: Visual = { widget: 'gitlog', caption: 'Your project history. Each commit is a snapshot you can go back to; the newest is on top.' };
 
 export function effectiveGuide(p: Project, a: Approvals, twoD = false): EffGuide | undefined {
   const g = baseGuide(p.id, twoD);
@@ -61,8 +64,8 @@ export function effectiveGuide(p: Project, a: Approvals, twoD = false): EffGuide
     merged.push(s);
     added.filter(x => x.after === i).forEach(x => merged.push({ ...x.step, key: x.key, origin: 'added', item: x.item, visuals: x.visual ? [x.visual] : [], ...(x.optional ? { optional: x.optional } : {}) }));
   });
-  const setup = setupStepFor(p, g) as EffStep; setup.key = 's0'; setup.origin = 'setup'; setup.visuals = [];
-  const git = gitStepFor(p, g) as EffStep; git.key = 's' + (g.steps.length + 1); git.origin = 'git'; git.visuals = [];
+  const setup = setupStepFor(p, g) as EffStep; setup.key = 's0'; setup.origin = 'setup'; setup.visuals = [SETUP_VISUAL];
+  const git = gitStepFor(p, g) as EffStep; git.key = 's' + (g.steps.length + 1); git.origin = 'git'; git.visuals = [GIT_VISUAL];
   // The pytest count in the finish checks follows the tests actually in the guide (audit steps add tests).
   const all = [...orig, ...added.map(x => x.step)];
   const nTests = all.reduce((n, s) => n + ((s.code ?? '').match(/^def test_/gm) ?? []).length, 0);

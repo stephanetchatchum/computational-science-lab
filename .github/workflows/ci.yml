@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: sudo apt-get update && sudo apt-get install -y mpich
-      - run: pip install numpy scipy pytest requests numba scikit-learn mpi4py && python scripts/verify_oracles.py
+      - run: pip install numpy scipy pytest requests numba scikit-learn mpi4py SALib && python scripts/verify_oracles.py
       - run: npm ci
       - run: bash scripts/verify_guides.sh
       - run: npm test

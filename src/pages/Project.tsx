@@ -180,7 +180,18 @@ export default function Project() {
   const active: Tab = tab ?? (eg && state.guideProgress[guideKey] ? 'build' : 'overview');
   const setTab = (t: Tab) => { params.set('tab', t); params.delete('step'); setParams(params); };
   const locked = !isUnlocked(p, done);
-  const hero = HERO_VIZ[p.id] ?? (p.labWidget ? [p.labWidget, ''] as [string, string] : undefined);
+  const stepWidget = (() => { // fallback: the widget the guide uses most (scene windows excluded)
+    const n: Record<string, number> = {};
+    eg?.steps.forEach(x => x.visuals?.forEach(v => { if (!/^win/.test(v.widget)) n[v.widget] = (n[v.widget] || 0) + 1; }));
+    return Object.entries(n).sort((x, y) => y[1] - x[1])[0]?.[0];
+  })();
+  const NEW_HERO: Record<string, [string, string]> = {
+    s4p8: ['poisson', 'Play with the idea first: a 2D potential relaxing towards the solution, the heart of this project.'],
+    s4p9: ['ising', 'Play with the idea first: a magnet made of spins. Change the temperature and watch order appear or melt.'],
+    s5p7: ['traces', 'Play with the idea first: four random walkers that start far apart and end up sampling the same answer.'],
+  };
+  const hero = HERO_VIZ[p.id] ?? NEW_HERO[p.id] ?? (p.labWidget ? [p.labWidget, ''] as [string, string] : stepWidget ? [stepWidget, 'Play with the idea first. This is the heart of the project.'] as [string, string] : undefined);
+  const stepVisualCount = eg?.steps.filter(x => x.visuals?.length).length ?? 0;
   const lessons = Object.values(LESSONS).filter(l => hero?.[0] === l.id);
   const download = () => { if (!eg) return; const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([guideMarkdown(p, eg.guide)], { type: 'text/markdown' })); a.download = `${eg.guide.slug}-GUIDE.md`; document.body.appendChild(a); a.click(); a.remove(); };
   const why = specText(p, 'deliverableWhy', state.approvals);
@@ -203,6 +214,7 @@ export default function Project() {
         <div className="stack" style={{ gap: 24 }}>
           {startEpisode(p.id) && <EpisodeCard ep={startEpisode(p.id)!} />}
           {hero && <section><VizWidget name={hero[0]} caption={hero[1] || null} /></section>}
+          {stepVisualCount > 0 && <p className="faint" style={{ fontSize: '.85rem', margin: '-8px 0 0' }}>▶ {stepVisualCount} of the {eg!.steps.length} build steps have their own live visual. Open <button className="linklike" onClick={() => setTab('build')}>Build</button> to see them, one per step.</p>}
           <section>
             <h2>What you are building</h2>
             <div style={{ marginTop: 8 }}>{paragraphs(p.explain).map((h, i) => <Html key={i} html={h} className="g-p" />)}</div>

@@ -6,7 +6,7 @@
 |---|---|---|
 | Stages (name, tagline, summary) | 8 | Curriculum, dashboard stage map |
 | Project specifications (all fields: context, explain, first win, problem, deliverable, data source, milestones, validation, tools, extensions, concepts) | 35 | Project workspace tabs |
-| Build guides (slug, packages, file tree, glossary, numbered steps with why/do/run/see/hint/code, finish checklist, stuck table) | 35 active (9 Ursina 3D) | Build guide / Tests & finish / If stuck tabs |
+| Build guides (slug, packages, file tree, glossary, numbered steps with why/do/run/see/hint/code, finish checklist, stuck table) | 40 active (9 Ursina 3D); every step of every guide has a live visual | Build guide / Tests & finish / If stuck tabs |
 | 2D pygame guides overwritten by the 3D versions | 9 (kept, hidden unless Decision 2 = toggle) | “2D version” switch |
 | Setup page (install steps, rules, templates, Python/Git survival kits, troubleshooting) | 1 | Setup |
 | Concept-lab widgets and sections | 26 widgets, 12 sections | Concept lab, lessons, project steps |
@@ -44,7 +44,7 @@ Approved changes never overwrite the original. In the build guide they appear as
 | 3 | ✅ | ✅ s3p1 (B1 stiffness + backward Euler, B8 the 15 derived), s3p2 (B2 leapfrog over 1000 orbits, A1 Kepler text), s3p3 (B6 R_eff + Poisson fit, A3 OWID data), s3p4 (B8 Jacobian and period), s3p5 (B9 hourly data + real gradient descent, E1 optional ball) | — |
 | 4 | ✅ | ✅ s4p1 (B1 implicit + Thomas, Richardson order; B8 von Neumann), s4p2 (B8 numerical diffusion, Péclet; A4 impossible check fixed), s4p3 (B7 Gillespie; A1 GeoNames), s4p4 (B5 sparse 2000-node bridge; A4 singular trusses fixed), s4p5 (B6 ties, prewhitening, Benjamini–Hochberg; B5 EOF; A1 + Decision 4), s4p6 (B8 2D CFL), s4p7 (B8 Turing analysis) | ✅ s4p8 Poisson + iterative solvers, ✅ s4p9 Ising |
 | 5 | ✅ | ✅ s5p1 (B2 symplectic, B4 C kernel via ctypes, B3 Barnes–Hut; A4 disc speed + numba timing), s5p2 (C5 posterior + predictive checks, B4 mpi4py, E1 optional; A4 median curve), s5p3 (B1 LOD implicit heat), s5p4 (X1 optional GP surrogate), s5p5 (E1 optional), s5p6 (D1 rewrite: Rusanov shallow water, Ritter dam-break check, 2D flood in real seconds) | ✅ s5p7 Bayesian SEIR by MCMC |
-| 6 | original demos only | shown as checkboxes | — |
+| 6 | ✅ | ✅ s6p1 (E1: the side-by-side window optional), s6p2 (A1 ranking text; C5 posterior inputs from s5p7; A4 Sobol sum), s6p3 | — (s6p1 and s6p3 are open-ended: the learner writes the checks) |
 
 Every new expected value is recomputed by `scripts/verify_oracles.py`. From Stage 3 on, `scripts/verify_guides.sh` also extracts the exact pytest files from the guides and runs them against reference solutions in `scripts/reference/` (both run in CI). The "N passed" finish check is computed from the tests actually in the guide.
 
@@ -65,7 +65,7 @@ Reasons are shown on the Audit page. Every decision can still be changed there.
 
 ## Errors found in the original guides (audit item A4)
 
-`scripts/verify_guides.sh` extracts the exact pytest files a learner builds from every guide (Stages 0–5, all audit items approved) and runs them against reference solutions in `scripts/reference/`, written to follow each guide literally. All 37 projects pass (242 tests). Getting there found these errors in the original guides, all corrected under A4:
+`scripts/verify_guides.sh` extracts the exact pytest files a learner builds from every guide (Stages 0–6, all audit items approved) and runs them against reference solutions in `scripts/reference/`, written to follow each guide literally. All 38 projects with fixed tests pass (247 tests); s6p1 and s6p3 are open-ended by design. Getting there found these errors in the original guides, all corrected under A4:
 
 | Project | Problem | Fix |
 |---|---|---|
@@ -80,7 +80,8 @@ Reasons are shown on the Audit page. Every decision can still be changed there.
 | s5p1 | Disc velocity 0.6·√ρ is ~3.6× too fast: the disc flies apart (median radius 3.3 → 10.4) | Circular-orbit speed √(m_inside/ρ); radius stays near 3.3 |
 | s5p1 | Numba promised “hundreds of times faster” with the loop copied exactly; measured ~40× over Python (python ~550 ms, numpy ~13, copied numba ~14; scalar-loop numba ~0.5) | Expected text gives measured timings |
 | s5p2 | Fan-chart median curve peaks near 0.27, not 0.30 (0.30 is the median of the 500 peaks; runs peak on different days) | Expected text corrected |
+| s6p2 | First-order Sobol indices sum to about 0.99, not 0.97 (ranking and values otherwise right) | Expected text corrected |
 
-Not yet checked this way: the nine optional “2D version” guides (Decision 2), and Stage 6 (to be done when it is built).
+Not yet checked this way: the nine optional “2D version” guides (Decision 2).
 
 Two promises in the audit's new-project specs were also corrected after measurement: CG on the Poisson problem takes about 1.6N iterations (not ≤ N), and the checkerboard Metropolis sweep is wrong on a 2 × 2 lattice (it is checked on 4 × 4 instead).

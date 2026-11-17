@@ -62,6 +62,7 @@ const SPEC_ALIGN: Record<string, { item: string; apply: (p: Project) => Partial<
     milestones: p.milestones.map((m, i) => i === 0 ? 'Download and correctly load annual rainfall for the 64-point NASA POWER grid over East Africa, 1991–2023.' : m),
   }) },
   s5p3: { item: 'A1', apply: () => ({ title: 'CPU-Parallel (GPU-Optional) High-Resolution 2D Heat Solver' }) },
+  s6p2: { item: 'A1', apply: p => ({ problem: p.problem.replace('for example in most SEIR parameterizations the transmission rate beta typically dominates the sensitivity of peak infection count;', 'remembering that the ranking depends on the ranges you chose, so report yours (with the ranges in this guide the recovery rate gamma dominates);') }) },
   s5p6: { item: 'D1', apply: p => ({
     title: 'Shallow-Water Flood Model (Finite Volume) for a Real River Basin',
     problem: 'Solve the shallow-water (Saint-Venant) equations with a finite-volume local Lax–Friedrichs (Rusanov) scheme. In 1D, validate against Ritter’s exact dam-break solution and report how the error falls with grid size. In 2D, use hydrostatic reconstruction so a lake at rest over uneven ground stays at rest, Manning friction, a CFL time step and real seconds, and check that water is conserved to rounding error. Then download a real elevation grid (SRTM via Open Topo Data), fill voids, and flood it with a stated inflow in m³/s or rainfall in mm/h. If a documented flood extent exists, report intersection-over-union; if not, say so and rest the validation on the analytic and conservation checks.',

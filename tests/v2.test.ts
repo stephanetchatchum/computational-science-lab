@@ -11,6 +11,7 @@ import { solve2, elimCount, singularValues, vander } from '../src/lab/stepWidget
 import * as W3 from '../src/lab/stepWidgets3';
 import * as W4 from '../src/lab/stepWidgets4';
 import * as W5 from '../src/lab/stepWidgets5';
+import * as W6 from '../src/lab/stepWidgets6';
 import { mergeStates, decide } from '../src/sync/merge';
 import { emptyState, load, memoryStorage, save, STATE_KEY } from '../src/state/store';
 import { spokenCode, sentences, wordSchedule } from '../src/lib/reader';
@@ -18,7 +19,7 @@ import { spokenCode, sentences, wordSchedule } from '../src/lib/reader';
 const all = defaultApprovals();
 const none: Approvals = Object.fromEntries(AUDIT_ITEMS.map(i => [i.id, 'pending']));
 const P = (id: string) => buildProjects(all).find(p => p.id === id)!;
-const STAGE01 = ['s0p1', 's0p2', 's0p3', 's0p4', 's1p1', 's1p2', 's1p3', 's1p4', 's1p5', 's1p6', 's2p1', 's2p2', 's2p3', 's2p4', 's2p5', 's2p6', 's3p1', 's3p2', 's3p3', 's3p4', 's3p5', 's4p1', 's4p2', 's4p3', 's4p4', 's4p5', 's4p6', 's4p7', 's4p8', 's4p9', 's5p1', 's5p2', 's5p3', 's5p4', 's5p5', 's5p6', 's5p7'];
+const STAGE01 = ['s0p1', 's0p2', 's0p3', 's0p4', 's1p1', 's1p2', 's1p3', 's1p4', 's1p5', 's1p6', 's2p1', 's2p2', 's2p3', 's2p4', 's2p5', 's2p6', 's3p1', 's3p2', 's3p3', 's3p4', 's3p5', 's4p1', 's4p2', 's4p3', 's4p4', 's4p5', 's4p6', 's4p7', 's4p8', 's4p9', 's5p1', 's5p2', 's5p3', 's5p4', 's5p5', 's5p6', 's5p7', 's6p1', 's6p2', 's6p3'];
 
 describe('effective guides', () => {
   it('every audit item is approved by default (your decision)', () => {
@@ -40,10 +41,10 @@ describe('effective guides', () => {
       g.steps.slice(1, -1).forEach((s, i) => { expect(s.do).toEqual(GUIDES[id].steps[i].do); expect(s.code).toEqual(GUIDES[id].steps[i].code); });
     }
   });
-  it('every Stage 0–5 build step (including the new ones) has a visual, and every visual exists', () => {
+  it('every build step of every stage (setup and git steps too) has a visual, and every visual exists', () => {
     for (const id of STAGE01) {
       const g = effectiveGuide(P(id), all)!;
-      for (const s of g.steps.filter(x => x.origin === 'original' || x.origin === 'added')) {
+      for (const s of g.steps) {
         expect(s.visuals.length, `${id} ${s.key} ${s.t}`).toBeGreaterThan(0);
         for (const v of s.visuals) {
           expect(VIZ[v.widget], v.widget).toBeTruthy();
@@ -227,5 +228,41 @@ describe('migration of your existing state', () => {
 describe('reader', () => {
   it('speaks terminal commands the way the original did', () => {
     expect(spokenCode('python -m src.main')).toBe('python dash m src dot main');
+  });
+});
+
+describe('Stage 6 visual maths (matches scripts/reference/s6p2, SALib)', () => {
+  it('Ishigami exact indices: S1 = 0.314, 0.442, 0 and S_T(x3) = 0.244', () => {
+    const e = W6.ishigamiExact(); expect(e.S1[0]).toBeCloseTo(0.314, 3); expect(e.S1[1]).toBeCloseTo(0.442, 3); expect(e.ST[2]).toBeCloseTo(0.244, 3);
+  });
+  it('the SEIR peak equals the Python reference (0.25159 at beta 0.5, sigma 0.2, gamma 0.12, i0 0.001)', () => {
+    expect(W6.seirPeak(0.5, 0.2, 0.12, 0.001, 0.2)).toBeCloseTo(0.25159, 4);
+  });
+  it('live Sobol agrees with SALib (gamma 0.69, beta 0.21, sigma 0.09, i0 0.00) within 0.05', () => {
+    const S = W6.sobol(x => W6.seirPeak(x[0], x[1], x[2], x[3]), W6.SENS.bounds, 256, 3);
+    [0.21, 0.09, 0.69, 0].forEach((v, i) => expect(Math.abs(S.S1[i] - v), W6.SENS.names[i]).toBeLessThan(0.05));
+    expect(S.S1.reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(1.05);
+  });
+  it('posterior band is about 4x narrower than the box (Python: 0.12–0.21 vs 0.06–0.42)', () => {
+    const run = (rows: number[][]) => rows.map(r => W6.seirPeak(r[0], r[1], r[2], r[3], 1)).sort((a, b) => a - b);
+    const pp = run(W6.standInPosterior(400)), pb = run(W6.boxSamples(400));
+    expect(pp[389] - pp[10]).toBeLessThan(0.35 * (pb[389] - pb[10])); expect(pp[10]).toBeGreaterThan(0.1); expect(pp[389]).toBeLessThan(0.23);
+  });
+  it('reproduce: the starting fraction shifts the timing, the step size changes the height', () => {
+    const pk = (c: number[]) => { let k = 0; c.forEach((v, i) => { if (v > c[k]) k = i; }); return { d: k, v: c[k] }; };
+    const paper = pk(W6.sirCurve(0.3, 0.1, 1e-4, 0.01)), early = pk(W6.sirCurve(0.3, 0.1, 1e-2, 0.1)), coarse = pk(W6.sirCurveCoarse(0.3, 0.1, 1e-4, 3));
+    expect(paper.d - early.d).toBeGreaterThan(18); expect(Math.abs(early.v - paper.v) / paper.v).toBeLessThan(0.03);
+    expect((coarse.v - paper.v) / paper.v).toBeGreaterThan(0.08);
+  });
+  it('slopeCI recovers a known slope and its interval contains it', () => {
+    const x = Array.from({ length: 30 }, (_, i) => i), y = x.map(v => 2 + 0.5 * v + (v % 3 - 1) * 0.1), r = W6.slopeCI(x, y);
+    expect(r.b).toBeCloseTo(0.5, 2); expect(r.lo).toBeLessThan(0.5); expect(r.hi).toBeGreaterThan(0.5);
+  });
+  it('rainshift verdicts match the captions: 33 years at 4/decade shows it; 2/decade or 10 years only suggest; 0 contains zero', () => {
+    const v = (tr: number, yrs: number) => { const p = W6.rainSeries(tr, yrs), r = W6.slopeCI(p.map(q => q[0]), p.map(q => q[1])); return { shows: r.lo > 0 || r.hi < 0, holds: r.lo * 10 <= tr && r.hi * 10 >= tr }; };
+    expect(v(4, 33)).toEqual({ shows: true, holds: true }); expect(v(2, 33).shows).toBe(false); expect(v(4, 10).shows).toBe(false); expect(v(0, 33)).toEqual({ shows: false, holds: true });
+  });
+  it('s6p2 finish check counts the 5 tests in the guide', () => {
+    expect(effectiveGuide(P('s6p2'), all)!.done.some(d => d.text.includes('**5 passed**'))).toBe(true);
   });
 });

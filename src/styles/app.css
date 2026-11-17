@@ -418,3 +418,4 @@ details > summary{cursor:pointer;}
 .episode video{width:100%; max-width:960px; aspect-ratio:16/9; border-radius:10px; background:#0b0d16; display:block;}
 .episode-sum{margin:8px 0 4px; font-size:.86rem;}
 .episode-tick{display:inline-flex; gap:6px; align-items:center; font-size:.84rem; cursor:pointer;}
+.linklike{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;cursor:pointer;font:inherit;}
