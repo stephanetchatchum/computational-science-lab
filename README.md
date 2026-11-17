@@ -4,6 +4,10 @@ A personal learning environment built from the **Computational Science Curriculu
 
 It is a static single-page app: no server, no account. Progress lives in your browser and can be exported/imported as JSON.
 
+## Animated episodes
+
+Short animated episodes with Nova sit at the top of each project ("watch before you start") and, for hard steps, inside the step. Videos live in `public/episodes/`, are listed in `src/content/episodes.ts`, and are generated from `episodes-src/`.
+
 ## What is inside
 
 | Area | What it does |
@@ -25,8 +29,8 @@ Requires Node 20+.
 ```bash
 npm install
 npm run dev        # http://localhost:5173
-bash scripts/verify_guides.sh   # guide tests vs reference solutions (needs Python + numpy + scipy + pytest)
-npm test           # 224 tests: numerics, widgets, guides, curriculum integrity, persistence, sync, UI flows
+bash scripts/verify_guides.sh   # guide tests vs reference solutions (needs Python + numpy scipy pytest numba scikit-learn mpi4py, plus gcc and MPI)
+npm test           # 246 tests: numerics, widgets, guides, curriculum integrity, persistence, sync, UI flows
 python3 scripts/verify_oracles.py   # recomputes every new expected value in the guides (needs numpy)
 npm run build      # type-check + production build into dist/
 npm run preview    # serve dist/

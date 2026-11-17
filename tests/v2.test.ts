@@ -10,6 +10,7 @@ import '../src/lab/stepWidgets2';
 import { solve2, elimCount, singularValues, vander } from '../src/lab/stepWidgets2';
 import * as W3 from '../src/lab/stepWidgets3';
 import * as W4 from '../src/lab/stepWidgets4';
+import * as W5 from '../src/lab/stepWidgets5';
 import { mergeStates, decide } from '../src/sync/merge';
 import { emptyState, load, memoryStorage, save, STATE_KEY } from '../src/state/store';
 import { spokenCode, sentences, wordSchedule } from '../src/lib/reader';
@@ -17,7 +18,7 @@ import { spokenCode, sentences, wordSchedule } from '../src/lib/reader';
 const all = defaultApprovals();
 const none: Approvals = Object.fromEntries(AUDIT_ITEMS.map(i => [i.id, 'pending']));
 const P = (id: string) => buildProjects(all).find(p => p.id === id)!;
-const STAGE01 = ['s0p1', 's0p2', 's0p3', 's0p4', 's1p1', 's1p2', 's1p3', 's1p4', 's1p5', 's1p6', 's2p1', 's2p2', 's2p3', 's2p4', 's2p5', 's2p6', 's3p1', 's3p2', 's3p3', 's3p4', 's3p5', 's4p1', 's4p2', 's4p3', 's4p4', 's4p5', 's4p6', 's4p7', 's4p8', 's4p9'];
+const STAGE01 = ['s0p1', 's0p2', 's0p3', 's0p4', 's1p1', 's1p2', 's1p3', 's1p4', 's1p5', 's1p6', 's2p1', 's2p2', 's2p3', 's2p4', 's2p5', 's2p6', 's3p1', 's3p2', 's3p3', 's3p4', 's3p5', 's4p1', 's4p2', 's4p3', 's4p4', 's4p5', 's4p6', 's4p7', 's4p8', 's4p9', 's5p1', 's5p2', 's5p3', 's5p4', 's5p5', 's5p6', 's5p7'];
 
 describe('effective guides', () => {
   it('every audit item is approved by default (your decision)', () => {
@@ -39,7 +40,7 @@ describe('effective guides', () => {
       g.steps.slice(1, -1).forEach((s, i) => { expect(s.do).toEqual(GUIDES[id].steps[i].do); expect(s.code).toEqual(GUIDES[id].steps[i].code); });
     }
   });
-  it('every Stage 0–4 build step (including the new ones) has a visual, and every visual exists', () => {
+  it('every Stage 0–5 build step (including the new ones) has a visual, and every visual exists', () => {
     for (const id of STAGE01) {
       const g = effectiveGuide(P(id), all)!;
       for (const s of g.steps.filter(x => x.origin === 'original' || x.origin === 'added')) {
@@ -58,13 +59,12 @@ describe('effective guides', () => {
   it('added steps attach to real steps and carry tests', () => {
     for (const [id, list] of Object.entries(ADDED_STEPS)) for (const a of list) {
       expect(a.after).toBeLessThan(GUIDES[id].steps.length);
-      expect(a.step.code ?? '').toMatch(/def test_/);
+      if (!a.key.endsWith('-source')) expect(a.step.code ?? '').toMatch(/def test_/);   // '-source' steps hold non-Python source (e.g. C)
     }
   });
-  it('s1p6, s2p6, s4p8 and s4p9 have full guides; s5p7 remains a specification', () => {
-    for (const id of ['s1p6', 's2p6', 's4p8', 's4p9']) { expect(hasGuide(id)).toBe(true); expect(NEW_GUIDES[id].steps.length).toBe(Object.keys(NEW_STEP_VISUALS[id]).length); expect(P(id).firstWin).not.toBe(''); }
+  it('all five new projects have full guides', () => {
+    for (const id of ['s1p6', 's2p6', 's4p8', 's4p9', 's5p7']) { expect(hasGuide(id)).toBe(true); expect(NEW_GUIDES[id].steps.length).toBe(Object.keys(NEW_STEP_VISUALS[id]).length); expect(P(id).firstWin).not.toBe(''); }
     expect(P('s2p6').firstWin).toMatch(/CO₂/);
-    expect(hasGuide('s5p7')).toBe(false);
     expect(Object.keys(STEP_VISUALS).length).toBeGreaterThanOrEqual(9);
   });
 });
@@ -170,6 +170,29 @@ describe('Stage 4 visual maths (matches the reference solutions)', () => {
     expect(g).toBeGreaterThan(0.005); expect(ge).toBeLessThan(0); expect(W4.uniformStates(0.03, 0.062)).toEqual([]);
   });
   it('Mann–Kendall S and BH match the hand checks', () => { expect(W4.mkS([1, 3, 2, 4])).toBe(4); expect(W4.mkZP([1, 2, 3, 4, 5]).z).toBeCloseTo(2.2045, 3); expect(W4.bh([0.001, 0.008, 0.039, 0.041, 0.042, 0.06, 0.074, 0.205, 0.212, 0.216]).filter(Boolean).length).toBe(2); });
+});
+
+describe('Stage 5 visual maths (matches the reference solutions)', () => {
+  it('the reference force.c is exactly the C code the guide shows', async () => {
+    const fs = await import('node:fs');
+    const step = ADDED_STEPS.s5p1.find(a => a.key === 'a:B4-c-source')!;
+    expect(fs.readFileSync('scripts/reference/s5p1/src/force.c', 'utf8').trim()).toBe(step.step.code!.trim());
+  });
+  it('dam break: the JS solver is close to Ritter and improves with resolution (as in Python: 0.0106 → 0.0067)', () => {
+    const err = (n: number) => { const R = W5.dam1d(n, 0.5); return R.h.reduce((a: number, v: number, i: number) => a + Math.abs(v - W5.ritterJS(R.x[i], R.t)), 0) / n; };
+    const e200 = err(200), e400 = err(400); expect(e400).toBeLessThan(e200); expect(e200).toBeCloseTo(0.0106, 3); expect(e400).toBeCloseTo(0.0067, 3);
+  });
+  it('2D flood step: a lake at rest stays at rest and water is conserved', () => {
+    const n = 20, z = new Float64Array(n * n); for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) z[i * n + j] = 2 + Math.sin(j / 4) * Math.cos(i / 5) + 0.05 * j;
+    const S = { h: z.map(v => Math.max(0, 2.6 - v)), hu: new Float64Array(n * n), hv: new Float64Array(n * n) }, m0 = S.h.reduce((a, b) => a + b, 0);
+    for (let k = 0; k < 100; k++) W5.flowStep(n, z, S, 10);
+    expect(Math.max(...S.hu.map(Math.abs), ...S.hv.map(Math.abs))).toBeLessThan(1e-10); expect(S.h.reduce((a, b) => a + b, 0)).toBeCloseTo(m0, 9);
+  });
+  it('weekly SEIR in JS matches the Python model (peak near week 10)', () => { const w = W5.weeklyJS(0.4, 0.125); const k = w.indexOf(Math.max(...w)); expect(k).toBeGreaterThan(5); expect(k).toBeLessThan(15); });
+  it('R̂ is near 1 for agreeing chains and large for disagreeing ones', () => {
+    const a = [0, 1, 2, 3].map(s => Array.from({ length: 500 }, (_, i) => Math.sin(i * 1.7 + s * 3.1))); expect(W5.rhat(a)).toBeLessThan(1.05);
+    expect(W5.rhat([0, 1, 2, 3].map(s => Array.from({ length: 500 }, (_, i) => s + 0.1 * Math.sin(i))))).toBeGreaterThan(1.5);
+  });
 });
 
 describe('sync', () => {

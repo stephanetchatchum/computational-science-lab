@@ -43,7 +43,8 @@ Approved changes never overwrite the original. In the build guide they appear as
 | 2 | ✅ | ✅ s2p1 (X1 flop count), s2p2 (X1 curse of dimensionality), s2p3 (B5 QR vs normal equations), s2p4 (A1 dry spells, E1 optional swarm), s2p5 (B3 shortest paths, E1 optional) | ✅ s2p6 full guide (Fourier, real CO₂ and Kigali data) |
 | 3 | ✅ | ✅ s3p1 (B1 stiffness + backward Euler, B8 the 15 derived), s3p2 (B2 leapfrog over 1000 orbits, A1 Kepler text), s3p3 (B6 R_eff + Poisson fit, A3 OWID data), s3p4 (B8 Jacobian and period), s3p5 (B9 hourly data + real gradient descent, E1 optional ball) | — |
 | 4 | ✅ | ✅ s4p1 (B1 implicit + Thomas, Richardson order; B8 von Neumann), s4p2 (B8 numerical diffusion, Péclet; A4 impossible check fixed), s4p3 (B7 Gillespie; A1 GeoNames), s4p4 (B5 sparse 2000-node bridge; A4 singular trusses fixed), s4p5 (B6 ties, prewhitening, Benjamini–Hochberg; B5 EOF; A1 + Decision 4), s4p6 (B8 2D CFL), s4p7 (B8 Turing analysis) | ✅ s4p8 Poisson + iterative solvers, ✅ s4p9 Ising |
-| 5–6 | original demos only | shown as checkboxes | s5p7 still a specification |
+| 5 | ✅ | ✅ s5p1 (B2 symplectic, B4 C kernel via ctypes, B3 Barnes–Hut; A4 disc speed + numba timing), s5p2 (C5 posterior + predictive checks, B4 mpi4py, E1 optional; A4 median curve), s5p3 (B1 LOD implicit heat), s5p4 (X1 optional GP surrogate), s5p5 (E1 optional), s5p6 (D1 rewrite: Rusanov shallow water, Ritter dam-break check, 2D flood in real seconds) | ✅ s5p7 Bayesian SEIR by MCMC |
+| 6 | original demos only | shown as checkboxes | — |
 
 Every new expected value is recomputed by `scripts/verify_oracles.py`. From Stage 3 on, `scripts/verify_guides.sh` also extracts the exact pytest files from the guides and runs them against reference solutions in `scripts/reference/` (both run in CI). The "N passed" finish check is computed from the tests actually in the guide.
 
@@ -64,7 +65,7 @@ Reasons are shown on the Audit page. Every decision can still be changed there.
 
 ## Errors found in the original guides (audit item A4)
 
-`scripts/verify_guides.sh` extracts the exact pytest files a learner builds from every guide (Stages 0–4, all audit items approved) and runs them against reference solutions in `scripts/reference/`, written to follow each guide literally. All 30 projects pass (204 tests). Getting there found these errors in the original guides, all corrected under A4:
+`scripts/verify_guides.sh` extracts the exact pytest files a learner builds from every guide (Stages 0–5, all audit items approved) and runs them against reference solutions in `scripts/reference/`, written to follow each guide literally. All 37 projects pass (242 tests). Getting there found these errors in the original guides, all corrected under A4:
 
 | Project | Problem | Fix |
 |---|---|---|
@@ -76,7 +77,10 @@ Reasons are shown on the Audit page. Every decision can still be changed there.
 | s2p4 | Toy-matrix stationary shares are 0.65, 0.24, 0.11, not 0.58, 0.28, 0.14 | Expected text corrected |
 | s4p2 | “variance < 0.35” is impossible: upwind’s own smear gives exactly 0.74 | Bound relaxed; the B8 step predicts 0.74 |
 | s4p4 | Hand truss and 3D bridge are mechanisms (singular stiffness matrix) | Node 2 locked in z; three sway braces |
+| s5p1 | Disc velocity 0.6·√ρ is ~3.6× too fast: the disc flies apart (median radius 3.3 → 10.4) | Circular-orbit speed √(m_inside/ρ); radius stays near 3.3 |
+| s5p1 | Numba promised “hundreds of times faster” with the loop copied exactly; measured ~40× over Python (python ~550 ms, numpy ~13, copied numba ~14; scalar-loop numba ~0.5) | Expected text gives measured timings |
+| s5p2 | Fan-chart median curve peaks near 0.27, not 0.30 (0.30 is the median of the 500 peaks; runs peak on different days) | Expected text corrected |
 
-Not yet checked this way: the nine optional “2D version” guides (Decision 2), and Stages 5–6 (to be done as each stage is built).
+Not yet checked this way: the nine optional “2D version” guides (Decision 2), and Stage 6 (to be done when it is built).
 
 Two promises in the audit's new-project specs were also corrected after measurement: CG on the Poisson problem takes about 1.6N iterations (not ≤ N), and the checkerboard Metropolis sweep is wrong on a 2 × 2 lattice (it is checked on 4 × 4 instead).

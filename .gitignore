@@ -6,3 +6,9 @@ coverage/
 .vite/
 __pycache__/
 .pytest_cache/
+*.so
+.tmp/
+episodes-src/**/*.wav
+episodes-src/**/lines.json
+episodes-src/**/*.mp4
+episodes-src/**/*.png

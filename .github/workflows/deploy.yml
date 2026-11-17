@@ -22,7 +22,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install numpy scipy pytest requests && python scripts/verify_oracles.py
+      - run: sudo apt-get update && sudo apt-get install -y mpich
+      - run: pip install numpy scipy pytest requests numba scikit-learn mpi4py && python scripts/verify_oracles.py
       - run: npm ci
       - run: bash scripts/verify_guides.sh
       - run: npm test

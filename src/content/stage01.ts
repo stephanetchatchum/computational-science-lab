@@ -8,7 +8,7 @@ import type { Guide, GuideStep } from './legacy/curriculum.js';
 import { GUIDES as LEGACY } from './legacy/curriculum.js';
 
 export interface Visual { widget: string; caption: string; preset?: Record<string, number> }
-export interface AddedStep { key: string; item: string; after: number; step: GuideStep; visual?: Visual }
+export interface AddedStep { key: string; item: string; after: number; step: GuideStep; visual?: Visual; optional?: string }
 export interface GuidePatch {
   steps?: Record<number, { replace?: [string, string][]; addCode?: string; optional?: string; item: string; see?: string; hint?: string; run?: string; t?: string; code?: string; why?: string; doAll?: string[] }>;
   stuck?: Record<number, { a?: string; b?: string; item: string }>;

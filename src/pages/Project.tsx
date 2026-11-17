@@ -15,6 +15,8 @@ import { DomainBadge, VisualBadge } from '../components/Badges';
 import { LESSONS } from '../content/lessons';
 import { SNAPSHOTS } from '../content/dataSnapshots';
 import { snapshotUrl, snapshotsPage } from '../config';
+import EpisodeCard from '../components/EpisodeCard';
+import { startEpisode, stepEpisode } from '../content/episodes';
 
 type Tab = 'overview' | 'build' | 'finish' | 'stuck' | 'notes' | 'details';
 const TABS: { id: Tab; label: string }[] = [
@@ -41,6 +43,7 @@ function StepView({ n, total, st, done, onToggle, onPrev, onNext, pid }: { n: nu
         {done && <span className="badge green">done</span>}
       </div>
       <h2 id={`st-${n}`}><Md text={s.t} /></h2>
+      {(() => { const ep = stepEpisode(pid, n); return ep ? <EpisodeCard ep={ep} /> : null; })()}
       {st.optional && <p className="notice violet" style={{ margin: '6px 0 10px' }}>{st.optional}</p>}
       {s.why && <p className="why"><Md text={s.why} /></p>}
       <StepVisuals visuals={st.visuals} />
@@ -89,6 +92,7 @@ function BuildTab({ p, eg, guideKey }: { p: P; eg: EffGuide; guideKey: string })
         {steps.map((s, i) => <button key={s.key} title={stripMarkup(s.t)} aria-label={`Step ${i}${prog[s.key] ? ' (done)' : ''}`} aria-current={i === cur ? 'step' : undefined}
           className={`${prog[s.key] ? 'done' : ''} ${i === cur ? 'on' : ''} ${s.origin === 'added' ? 'added' : ''} ${s.optional ? 'opt' : ''}`} onClick={() => { setAll(false); go(i); }}>{prog[s.key] ? '✓' : i}</button>)}
       </nav>
+      {cur === 0 && !all && startEpisode(p.id) && !state.guideProgress[p.id]?.['ep:' + startEpisode(p.id)!.id] && <EpisodeCard ep={startEpisode(p.id)!} />}
       {(all ? steps.map((_, i) => i) : [cur]).map(i => (
         <StepView key={steps[i].key} n={i} total={steps.length} st={steps[i]} pid={p.id} done={!!prog[steps[i].key]} onToggle={() => toggle(i)} onPrev={() => go(i - 1)} onNext={() => go(i + 1)} />
       ))}
@@ -197,6 +201,7 @@ export default function Project() {
 
       {active === 'overview' && (!eg ? <SpecOnly p={p} /> : (
         <div className="stack" style={{ gap: 24 }}>
+          {startEpisode(p.id) && <EpisodeCard ep={startEpisode(p.id)!} />}
           {hero && <section><VizWidget name={hero[0]} caption={hero[1] || null} /></section>}
           <section>
             <h2>What you are building</h2>

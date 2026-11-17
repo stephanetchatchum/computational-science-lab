@@ -5,6 +5,7 @@ import '../lab/stepWidgets';
 import '../lab/stepWidgets2';
 import '../lab/stepWidgets3';
 import '../lab/stepWidgets4';
+import '../lab/stepWidgets5';
 import { useApp } from '../state/AppState';
 import { Md } from './Markup';
 import type { Visual } from '../content/stages';

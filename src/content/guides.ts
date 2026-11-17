@@ -59,7 +59,7 @@ export function effectiveGuide(p: Project, a: Approvals, twoD = false): EffGuide
   const merged: EffStep[] = [];
   orig.forEach((s, i) => {
     merged.push(s);
-    added.filter(x => x.after === i).forEach(x => merged.push({ ...x.step, key: x.key, origin: 'added', item: x.item, visuals: x.visual ? [x.visual] : [] }));
+    added.filter(x => x.after === i).forEach(x => merged.push({ ...x.step, key: x.key, origin: 'added', item: x.item, visuals: x.visual ? [x.visual] : [], ...(x.optional ? { optional: x.optional } : {}) }));
   });
   const setup = setupStepFor(p, g) as EffStep; setup.key = 's0'; setup.origin = 'setup'; setup.visuals = [];
   const git = gitStepFor(p, g) as EffStep; git.key = 's' + (g.steps.length + 1); git.origin = 'git'; git.visuals = [];

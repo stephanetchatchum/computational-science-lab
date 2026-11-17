@@ -412,3 +412,9 @@ table.t th{font-family:var(--font-mono); font-size:.7rem; text-transform:upperca
 details > summary{cursor:pointer;}
 .quiet{border:0; background:transparent; padding:0;}
 @media (max-width:880px){ .reader-bar{bottom:0; left:0; right:0; width:auto; max-width:none; border-radius:14px 14px 0 0;} .hide-sm{display:none;} .topbar .crumbs{visibility:hidden;} .capture-box{position:fixed; left:12px; right:12px; top:64px; width:auto;} .step-card{padding:16px;} }
+/* episodes */
+.episode{border:1px solid var(--line, rgba(255,255,255,.12)); border-radius:14px; padding:12px; margin:8px 0 16px; background:rgba(227,179,65,.04);}
+.episode-head{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:8px;}
+.episode video{width:100%; max-width:960px; aspect-ratio:16/9; border-radius:10px; background:#0b0d16; display:block;}
+.episode-sum{margin:8px 0 4px; font-size:.86rem;}
+.episode-tick{display:inline-flex; gap:6px; align-items:center; font-size:.84rem; cursor:pointer;}
