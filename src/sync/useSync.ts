@@ -34,8 +34,8 @@ export function useSync(state: AppState, replace: (s: AppState) => void): SyncAp
     currentUser().then(u => { if (!alive) return; setUser(u); setStatus(u ? 'syncing' : 'signed-out'); if (u) now(); });
     const { data } = c.auth.onAuthStateChange((_e, session) => { setUser(session?.user ?? null); if (session?.user) now(); else setStatus('signed-out'); });
     const onFocus = () => { if (user) now(); };
-    window.addEventListener('focus', onFocus);
-    return () => { alive = false; data.subscription.unsubscribe(); window.removeEventListener('focus', onFocus); };
+    window.addEventListener('focus', onFocus); window.addEventListener('online', onFocus);
+    return () => { alive = false; data.subscription.unsubscribe(); window.removeEventListener('focus', onFocus); window.removeEventListener('online', onFocus); };
   }, [tick]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {

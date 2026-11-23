@@ -44,6 +44,14 @@ The build uses relative paths and hash routing, so `dist/` works from any sub-pa
 
 **Netlify / Vercel / Cloudflare Pages:** build command `npm run build`, output directory `dist`.
 
+## Offline use
+
+Open the site once while online. The service worker (`src/offline/sw.js`, written to `dist/sw.js` by the build) saves every file of the app, including the episode videos, and a message confirms "Saved for offline use". After that the same link opens and works with no internet on that device and browser. Progress is stored in the browser, so it works offline too. Sync to Supabase waits and runs again when the connection comes back.
+
+When a new version is deployed, the next online visit downloads it in the background and offers a **Reload** button. On a phone you can also use *Add to Home Screen* to open it like an app.
+
+Things that still need the internet: the data downloads your projects make from your terminal (World Bank, NASA POWER and the rest), the snapshot links on GitHub, and signing in to sync. `scripts/verify_offline.mjs` checks in CI that every built file is on the offline list.
+
 ## Accounts, sync and backup data
 
 - **Sync across devices (optional):** follow `docs/SUPABASE.md` (free Supabase project, ~10 minutes).

@@ -8,5 +8,7 @@ import '@fontsource/atkinson-hyperlegible-mono/600.css';
 import './styles/app.css';
 import './styles/widgets.css';
 import App from './App';
+import { registerOffline } from './offline/register';
 
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);
+registerOffline();
