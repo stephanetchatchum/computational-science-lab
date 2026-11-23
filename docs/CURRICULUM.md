@@ -43,10 +43,21 @@ Approved changes never overwrite the original. In the build guide they appear as
 | 2 | ✅ | ✅ s2p1 (X1 flop count), s2p2 (X1 curse of dimensionality), s2p3 (B5 QR vs normal equations), s2p4 (A1 dry spells, E1 optional swarm), s2p5 (B3 shortest paths, E1 optional) | ✅ s2p6 full guide (Fourier, real CO₂ and Kigali data) |
 | 3 | ✅ | ✅ s3p1 (B1 stiffness + backward Euler, B8 the 15 derived), s3p2 (B2 leapfrog over 1000 orbits, A1 Kepler text), s3p3 (B6 R_eff + Poisson fit, A3 OWID data), s3p4 (B8 Jacobian and period), s3p5 (B9 hourly data + real gradient descent, E1 optional ball) | — |
 | 4 | ✅ | ✅ s4p1 (B1 implicit + Thomas, Richardson order; B8 von Neumann), s4p2 (B8 numerical diffusion, Péclet; A4 impossible check fixed), s4p3 (B7 Gillespie; A1 GeoNames), s4p4 (B5 sparse 2000-node bridge; A4 singular trusses fixed), s4p5 (B6 ties, prewhitening, Benjamini–Hochberg; B5 EOF; A1 + Decision 4), s4p6 (B8 2D CFL), s4p7 (B8 Turing analysis) | ✅ s4p8 Poisson + iterative solvers, ✅ s4p9 Ising |
-| 5 | ✅ | ✅ s5p1 (B2 symplectic, B4 C kernel via ctypes, B3 Barnes–Hut; A4 disc speed + numba timing), s5p2 (C5 posterior + predictive checks, B4 mpi4py, E1 optional; A4 median curve), s5p3 (B1 LOD implicit heat), s5p4 (X1 optional GP surrogate), s5p5 (E1 optional), s5p6 (D1 rewrite: Rusanov shallow water, Ritter dam-break check, 2D flood in real seconds) | ✅ s5p7 Bayesian SEIR by MCMC |
+| 5 | ✅ | ✅ s5p1 (B2 symplectic, B4 C kernel via ctypes, B3 Barnes–Hut; A4 disc speed + numba timing), s5p2 (C5 posterior + predictive checks, B4 mpi4py, E1 optional; A4 median curve), s5p3 (B1 LOD implicit heat), s5p4 and s5p5 redesigned as AI projects (see below), s5p6 (D1 rewrite: Rusanov shallow water, Ritter dam-break check, 2D flood in real seconds) | ✅ s5p7 Bayesian SEIR by MCMC |
 | 6 | ✅ | ✅ s6p1 (E1: the side-by-side window optional), s6p2 (A1 ranking text; C5 posterior inputs from s5p7; A4 Sobol sum), s6p3 | — (s6p1 and s6p3 are open-ended: the learner writes the checks) |
 
 Every new expected value is recomputed by `scripts/verify_oracles.py`. From Stage 3 on, `scripts/verify_guides.sh` also extracts the exact pytest files from the guides and runs them against reference solutions in `scripts/reference/` (both run in CI). The "N passed" finish check is computed from the tests actually in the guide.
+
+## Redesigned projects (Nov 2026)
+
+At the learner's request two Stage 5 projects were replaced with AI projects that are also computational science. The ids stay the same, so links and saved progress keep working. Content, guides and visuals are in `src/content/redesigned.ts`; the in-app widgets are in `src/lab/stepWidgetsAI.ts`; reference solutions are in `scripts/reference/s5p4` and `s5p5`.
+
+| id | was | now | validated against |
+|---|---|---|---|
+| s5p4 | Data-driven surrogate model | **Moto-Taxi Rush**: 60 riders with 10 → 8 → 2 neural networks, evolved to ride a 3-lane road in IDM traffic | exact circles and the friction limit for the bicycle model; the Sugiyama et al. (2008) phantom jam (22 cars on 230 m jam, 14 flow); champion chosen on held-out traffic and examined on a new road and denser traffic |
+| s5p5 | Crop yield prediction | **AI vs the Virus**: Q-learning and an evolved 5 → 8 → 4 policy choose test / lockdown / vaccinate per town per week in a 12-town SEIR model | conservation; early growth rate within 2% of the SEIR formula; comparison with doing nothing and a hand rule on held-out R₀, start towns and a new country |
+
+`tests/ai.test.ts` checks that the in-app visuals reproduce the reference numbers (the phantom jam, and the outbreak scores to 3 decimals).
 
 ## Remaining decisions (Audit page)
 

@@ -117,73 +117,6 @@ VIZ.cores = { ...STEP,
   stats(_S: any, P: any) { return [['speedup on 4', (1 / (P.s + (1 - P.s) / 4)).toFixed(2), QC.vel], ['on 16', (1 / (P.s + (1 - P.s) / 16)).toFixed(2), QC.vel], ['limit', P.s ? (1 / P.s).toFixed(1) : '∞', QC.dim]]; },
 };
 
-/* ================= s5p4 ================= */
-function peakSmall(alpha: number, hot: number) { const n = 40, u = new Float64Array(n * n), a = Math.floor(n / 2 - hot / 2); for (let i = a; i < a + hot; i++) for (let j = a; j < a + hot; j++) u[i * n + j] = 100; let v = new Float64Array(n * n);
-  for (let s = 0; s < 100; s++) { for (let i = 1; i < n - 1; i++) for (let j = 1; j < n - 1; j++) { const k = i * n + j; v[k] = u[k] + 0.2 * alpha * (u[k - n] + u[k + n] + u[k - 1] + u[k + 1] - 4 * u[k]); } for (let k = 0; k < n * n; k++) u[k] = v[k]; v = new Float64Array(n * n); }
-  return u[(n / 2) * n + n / 2]; }
-VIZ.surrogate = { ...STEP,
-  title: 'The slow model, sampled with a Latin hypercube', eq: 'one point in every row-slice and every column-slice &nbsp;|&nbsp; colour = centre temperature',
-  note: 'Same physics as your truth model on a smaller grid (40 × 40, 100 steps) so it runs here. Hot size is scaled to fit.', h: 290, autoplay: false, resetOnParam: true,
-  params: [{ k: 'n', label: 'runs', min: 5, max: 40, val: 20, step: 5, fmt: (v: number) => v.toFixed(0) }],
-  init(P: any) { const R = rng(1), n = P.n, perm = () => { const a = Array.from({ length: n }, (_, i) => (i + R.u()) / n); for (let i = n - 1; i > 0; i--) { const j = Math.floor(R.u() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }; const c0 = perm(), c1 = perm(); return { pts: c0.map((u, i) => { const al = 0.2 + 0.8 * u, hs = Math.round(2 + 14 * c1[i]); return [u, c1[i], peakSmall(al, hs)]; }) }; },
-  draw(c: VizCtx, S: any, P: any) {
-    c.view(0, 1, 0, 1); c.grid(P.n, P.n); c.axes('alpha (0.2 → 1.0)', 'hot size'); c.ticks(false, false as any);
-    const mx = Math.max(...S.pts.map((p: number[]) => p[2])); S.pts.forEach((p: number[]) => { const t = p[2] / mx; c.dot(p[0], p[1], 6, `rgb(${Math.round(60 + 195 * t)},${Math.round(80 + 80 * t)},${Math.round(200 - 150 * t)})`, 6); });
-  },
-  stats(S: any) { const v = S.pts.map((p: number[]) => p[2]); return [['coolest centre', Math.min(...v).toFixed(1), QC.pos], ['hottest centre', Math.max(...v).toFixed(1), QC.bad]]; },
-};
-
-function gpFit(X: number[], Y: number[], ls = 0.5, amp = 1, noise = 1e-6) {
-  const n = X.length, mY = Y.reduce((a, b) => a + b, 0) / n, sd = Math.sqrt(Y.reduce((a, b) => a + (b - mY) ** 2, 0) / n) || 1, y = Y.map(v => (v - mY) / sd), k = (a: number, b: number) => amp * Math.exp(-((a - b) ** 2) / (2 * ls * ls));
-  const K = X.map((a, i) => X.map((b, j) => k(a, b) + (i === j ? noise : 0))), L = K.map(r => r.map(() => 0));
-  for (let i = 0; i < n; i++) for (let j = 0; j <= i; j++) { let s = K[i][j]; for (let q = 0; q < j; q++) s -= L[i][q] * L[j][q]; L[i][j] = i === j ? Math.sqrt(Math.max(s, 1e-12)) : s / L[j][j]; }
-  const solve = (b: number[]) => { const z = b.slice(); for (let i = 0; i < n; i++) { for (let q = 0; q < i; q++) z[i] -= L[i][q] * z[q]; z[i] /= L[i][i]; } for (let i = n - 1; i >= 0; i--) { for (let q = i + 1; q < n; q++) z[i] -= L[q][i] * z[q]; z[i] /= L[i][i]; } return z; };
-  const alpha = solve(y);
-  return (x: number) => { const ks = X.map(a => k(x, a)), mean = ks.reduce((s, v, i) => s + v * alpha[i], 0), w = solve(ks), v = amp - ks.reduce((s, q, i) => s + q * w[i], 0); return [mY + sd * mean, sd * Math.sqrt(Math.max(v, 0))]; };
-}
-VIZ.gpband = { ...STEP,
-  title: 'A Gaussian process: a prediction and its own error bar', eq: 'mean ± 2σ &nbsp;|&nbsp; RBF kernel, length 0.5',
-  note: 'Truth (dashed): sin(3x) + x/2. Training points are drawn at random in 0–3; the band widens in gaps and beyond 3.', h: 280, autoplay: false, resetOnParam: true,
-  params: [{ k: 'n', label: 'training points', min: 2, max: 15, val: 6, step: 1, fmt: (v: number) => v.toFixed(0) }],
-  init(P: any) { const R = rng(0), X = Array.from({ length: P.n }, () => 3 * R.u()).sort((a, b) => a - b); return { X, Y: X.map(x => Math.sin(3 * x) + 0.5 * x), f: gpFit(X, X.map(x => Math.sin(3 * x) + 0.5 * x)) }; },
-  draw(c: VizCtx, S: any) {
-    c.view(-0.2, 4.5, -2.5, 4); c.grid(5, 4); c.axes('x', 'y'); c.ticks(v => v.toFixed(1), v => v.toFixed(1));
-    const xs = Array.from({ length: 200 }, (_, i) => -0.2 + 4.7 * i / 199), pr = xs.map(x => S.f(x));
-    c.ctx.fillStyle = 'rgba(88,166,255,.22)'; c.ctx.beginPath(); xs.forEach((x, i) => (i ? c.ctx.lineTo(c.X(x), c.Y(pr[i][0] + 2 * pr[i][1])) : c.ctx.moveTo(c.X(x), c.Y(pr[i][0] + 2 * pr[i][1])))); xs.slice().reverse().forEach((x, i) => { const k = xs.length - 1 - i; c.ctx.lineTo(c.X(x), c.Y(pr[k][0] - 2 * pr[k][1])); }); c.ctx.fill();
-    c.ctx.save(); c.ctx.setLineDash([5, 4]); c.path(xs.map(x => [x, Math.sin(3 * x) + 0.5 * x] as [number, number]), 'rgba(230,237,243,.6)', 1.2); c.ctx.restore();
-    c.path(xs.map((x, i) => [x, pr[i][0]] as [number, number]), QC.pos, 2.2, 6); S.X.forEach((x: number, i: number) => c.dot(x, S.Y[i], 4.5, QC.energy, 8));
-  },
-  stats(S: any) { return [['σ at x = 4.5', S.f(4.5)[1].toFixed(2), QC.warm], ['σ at a training point', S.f(S.X[0])[1].toExponential(1), QC.vel]]; },
-};
-
-/* ================= s5p5 ================= */
-VIZ.gdd = { ...STEP,
-  title: 'Growing degree days: warmth above a base, added up', eq: 'GDD = Σ max(0, T_day − base)',
-  note: 'Synthetic year of daily mean temperatures (a seasonal wave plus noise).', h: 260, autoplay: false,
-  params: [{ k: 'base', label: 'base (°C)', min: 5, max: 20, val: 10, step: 0.5, fmt: (v: number) => v.toFixed(1) }],
-  init() { const R = rng(2); return { T: Array.from({ length: 365 }, (_, d) => 15 + 6 * Math.sin(2 * Math.PI * (d - 100) / 365) + 1.8 * R.normal()) }; },
-  draw(c: VizCtx, S: any, P: any) {
-    c.view(0, 365, 0, 28); c.grid(6, 4); c.axes('day of year', '°C'); c.ticks(v => v.toFixed(0), v => v.toFixed(0));
-    S.T.forEach((t: number, d: number) => { if (t > P.base) { c.ctx.fillStyle = 'rgba(227,179,65,.55)'; c.ctx.fillRect(c.X(d), c.Y(t), Math.max(1, c.X(1) - c.X(0)), c.Y(P.base) - c.Y(t)); } });
-    c.path(S.T.map((t: number, d: number) => [d, t] as [number, number]), QC.pos, 1.4); c.ctx.save(); c.ctx.setLineDash([5, 4]); c.path([[0, P.base], [365, P.base]], QC.bad, 1.4); c.ctx.restore();
-  },
-  stats(S: any, P: any) { return [['GDD', S.T.reduce((a: number, t: number) => a + Math.max(0, t - P.base), 0).toFixed(0), QC.energy], ['days above base', S.T.filter((t: number) => t > P.base).length, QC.dim]]; },
-};
-
-VIZ.loyo = { ...STEP,
-  title: 'Leave one year out: the honest test for a short record', eq: 'for each year: fit on the others, predict it &nbsp;|&nbsp; compare with “predict the mean”',
-  note: 'Synthetic: 25 years where yield depends weakly on season rain, plus noise.', h: 290, stepBtn: true,
-  init() { const R = rng(12), rain = Array.from({ length: 25 }, () => 300 + 120 * R.normal()), y = rain.map(r => 1500 + 1.2 * r + 260 * R.normal()); return { rain, y, k: -1, pred: [] as number[], base: [] as number[] }; },
-  stepOnce(S: any) { if (S.k >= 24) return; S.k++; const idx = S.rain.map((_: number, i: number) => i).filter((i: number) => i !== S.k), xm = idx.reduce((a: number, i: number) => a + S.rain[i], 0) / idx.length, ym = idx.reduce((a: number, i: number) => a + S.y[i], 0) / idx.length, b = idx.reduce((a: number, i: number) => a + (S.rain[i] - xm) * (S.y[i] - ym), 0) / idx.reduce((a: number, i: number) => a + (S.rain[i] - xm) ** 2, 0); S.pred.push(ym + b * (S.rain[S.k] - xm)); S.base.push(ym); S.line = [xm, ym, b]; },
-  step(S: any) { S.tick = (S.tick ?? 0) + 1; if (S.tick % 30 === 0) VIZ.loyo.stepOnce!(S, null, null as any); },
-  draw(c: VizCtx, S: any) {
-    c.view(0, 650, 1200, 3200); c.grid(5, 4); c.axes('season rain (mm)', 'yield (kg/ha)'); c.ticks(v => v.toFixed(0), v => v.toFixed(0));
-    S.rain.forEach((r: number, i: number) => c.dot(r, S.y[i], i === S.k ? 7 : 4, i === S.k ? QC.warm : QC.pos, i === S.k ? 10 : 0));
-    if (S.line) { const [xm, ym, b] = S.line; c.path([[0, ym - b * xm], [650, ym + b * (650 - xm)]], QC.vel, 1.8); c.dot(S.rain[S.k], S.pred.at(-1), 5, QC.vel, 8); }
-  },
-  stats(S: any) { const n = S.pred.length; if (!n) return [['press Step', '', QC.dim]]; const e = (p: number[]) => Math.sqrt(p.reduce((a, v, i) => a + (v - S.y[i]) ** 2, 0) / n); return [['years tested', n, QC.dim], ['model RMSE', e(S.pred).toFixed(0), QC.vel], ['mean-only RMSE', e(S.base).toFixed(0), QC.energy]]; },
-};
-
 /* ================= s5p6 shallow water ================= */
 const G = 9.81, DRY = 1e-6;
 export function ritterJS(x: number, t: number, h0 = 1) { const c0 = Math.sqrt(G * h0), xi = x / t; return xi <= -c0 ? h0 : xi >= 2 * c0 ? 0 : (2 * c0 - xi) ** 2 / (9 * G); }
@@ -312,4 +245,4 @@ VIZ.traces = { ...STEP,
   stats(S: any) { if (S.n < 40) return [['R̂', '…', QC.dim]]; const half = Math.floor(S.n / 2), r = rhat(S.ch.map((c: number[]) => c.slice(half))); return [['steps', S.n, QC.dim], ['R̂ (second half)', r.toFixed(3), r < 1.05 ? QC.vel : QC.warm]]; },
 };
 
-export const STEP_WIDGETS_5 = ['nbody', 'scaling', 'quadtree', 'fan', 'cores', 'surrogate', 'gpband', 'gdd', 'loyo', 'dambreak', 'terrain', 'flood2d', 'likelihood', 'metropolis', 'traces'];
+export const STEP_WIDGETS_5 = ['nbody', 'scaling', 'quadtree', 'fan', 'cores', 'dambreak', 'terrain', 'flood2d', 'likelihood', 'metropolis', 'traces'];

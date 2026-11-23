@@ -7,6 +7,7 @@ import '../lab/stepWidgets3';
 import '../lab/stepWidgets4';
 import '../lab/stepWidgets5';
 import '../lab/stepWidgets6';
+import '../lab/stepWidgetsAI';
 import { useApp } from '../state/AppState';
 import { Md } from './Markup';
 import type { Visual } from '../content/stages';

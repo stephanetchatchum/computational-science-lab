@@ -9,6 +9,5 @@ export const SNAPSHOTS: Record<string, { file: string; what: string }[]> = {
   s3p3: [{ file: 'owid_cases_deaths_rwanda.csv', what: 'OWID/WHO COVID-19 cases, Rwanda rows' }, { file: 'disease_sh_rwanda_historical.json', what: 'disease.sh COVID-19 history, Rwanda (used by the original guide)' }],
   s3p5: [{ file: 'nasa_power_hourly_kigali_2022.json', what: 'NASA POWER hourly irradiance, Kigali 2022' }],
   s4p5: [{ file: 'nasa_power_monthly_PRECTOTCORR_grid64_1991_2023.json', what: 'NASA POWER monthly rainfall, 8 × 8 grid' }],
-  s5p5: [{ file: 'worldbank_KEN_cereal_yield.json', what: 'World Bank cereal yield, Kenya' }],
   s5p6: [{ file: 'opentopodata_srtm30m_kigali_box.json', what: 'SRTM 30 m elevation grid, Kigali box' }],
 };

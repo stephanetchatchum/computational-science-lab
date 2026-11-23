@@ -7,6 +7,7 @@ import { STEP_WIDGETS_3 } from '../src/lab/stepWidgets3';
 import { STEP_WIDGETS_4 } from '../src/lab/stepWidgets4';
 import { STEP_WIDGETS_5 } from '../src/lab/stepWidgets5';
 import { STEP_WIDGETS_6 } from '../src/lab/stepWidgets6';
+import { STEP_WIDGETS_AI } from '../src/lab/stepWidgetsAI';
 
 const noop = () => {};
 function fakeCanvas() {
@@ -20,7 +21,7 @@ function fakeCanvas() {
 describe('every lab widget runs headless', () => {
   const names = Object.keys(VIZ);
   it('has the 26 original widgets, the 3 audit widgets and the step visuals', () => {
-    expect(names.length).toBe(29 + STEP_WIDGETS.length + STEP_WIDGETS_2.length + STEP_WIDGETS_3.length + STEP_WIDGETS_4.length + STEP_WIDGETS_5.length + STEP_WIDGETS_6.length);
+    expect(names.length).toBe(29 + STEP_WIDGETS.length + STEP_WIDGETS_2.length + STEP_WIDGETS_3.length + STEP_WIDGETS_4.length + STEP_WIDGETS_5.length + STEP_WIDGETS_6.length + STEP_WIDGETS_AI.length);
     expect(STEP_WIDGETS.length).toBeGreaterThanOrEqual(20);
     for (const n of ['stability', 'fft', 'convergence']) expect(names).toContain(n);
   });

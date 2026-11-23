@@ -2,9 +2,15 @@
  * The effective curriculum = the original content + the audit items the learner has approved.
  * Pure functions only, so they are easy to test.
  */
-import { STAGES, PROJECTS, CAPSTONE, GUIDES, GUIDES_2D, type LegacyProject, type Guide } from './legacy/curriculum.js';
+import { STAGES, PROJECTS as LEGACY_PROJECTS, CAPSTONE, GUIDES as LEGACY_GUIDES, GUIDES_2D, type LegacyProject, type Guide } from './legacy/curriculum.js';
 import { NEW_GUIDES } from './stages';
+import { REDESIGNED_PROJECTS, REDESIGNED_GUIDES } from './redesigned';
 import { AUDIT_ITEMS, NEW_PROJECTS, PREREQ_CHANGES, REVISED_ORDER, REVISIONS, DEMOTIONS, type ApprovalState, type Revision } from './audit';
+
+/** The original projects and guides, with the two redesigned AI projects (s5p4, s5p5) swapped in. */
+const PROJECTS: LegacyProject[] = LEGACY_PROJECTS.map(p => REDESIGNED_PROJECTS[p.id] ?? p);
+const GUIDES: Record<string, Guide> = { ...LEGACY_GUIDES, ...REDESIGNED_GUIDES };
+export const isRedesigned = (id: string) => id in REDESIGNED_PROJECTS;
 
 export { STAGES, CAPSTONE, GUIDES, GUIDES_2D };
 export type { LegacyProject, Guide };

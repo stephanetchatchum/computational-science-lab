@@ -8,6 +8,7 @@ import { dueReviews } from '../state/store';
 import { Md } from '../components/Markup';
 import { VizWidget } from '../components/VizWidget';
 import { HERO_VIZ } from '../content/legacy/guideExtras.js';
+import { REDESIGNED_HERO } from '../content/redesigned';
 import { QUICK_WIN_IDS, QUICK_WIN_TEXT, DomainBadge } from '../components/Badges';
 
 const LADDER = ['hand oracle', 'analytic solution', 'convergence order', 'calibration', 'held-out test', 'uncertainty quantification', 'reproduction'];
@@ -41,7 +42,7 @@ export default function Dashboard() {
   const doneCount = projects.filter(p => done.has(p.id)).length;
   const topStage = Math.max(-1, ...projects.filter(p => done.has(p.id)).map(p => p.stage));
   const rung = topStage < 0 ? -1 : RUNG_BY_STAGE[topStage];
-  const hero = cur ? HERO_VIZ[cur.id] : undefined;
+  const hero = cur ? REDESIGNED_HERO[cur.id] ?? HERO_VIZ[cur.id] : undefined;
   const recent = [...state.history].reverse().filter(h => h.kind !== 'visit').slice(0, 6);
   const quick = QUICK_WIN_IDS.map(id => projectById(id)).filter(Boolean) as NonNullable<ReturnType<typeof projectById>>[];
 

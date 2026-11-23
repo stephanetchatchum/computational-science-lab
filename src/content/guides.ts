@@ -7,6 +7,7 @@ import { GUIDES, GUIDES_2D, isApproved, type Approvals, type Project } from './c
 import { STEP_VIZ, setupStepFor, gitStepFor } from './legacy/guideExtras.js';
 import type { Guide, GuideStep } from './legacy/curriculum.js';
 import { STEP_VISUALS, PATCHES, ADDED_STEPS, NEW_GUIDES, NEW_STEP_VISUALS, type Visual } from './stages';
+import { REDESIGNED_STEP_VISUALS } from './redesigned';
 
 export interface EffStep extends GuideStep {
   key: string; origin: 'setup' | 'original' | 'added' | 'git';
@@ -22,6 +23,8 @@ export function baseGuide(id: string, twoD = false): Guide | undefined {
 
 /** Original demo first (never removed), then the new step visual if it shows something different. */
 function visualsFor(id: string, i: number): Visual[] {
+  const re = REDESIGNED_STEP_VISUALS[id];
+  if (re) return re[i] ? [re[i]] : [];
   const out: Visual[] = [];
   const legacy = STEP_VIZ[id]?.[i];
   if (legacy) out.push({ widget: legacy[0], caption: legacy[1] });

@@ -12,6 +12,7 @@ import * as W3 from '../src/lab/stepWidgets3';
 import * as W4 from '../src/lab/stepWidgets4';
 import * as W5 from '../src/lab/stepWidgets5';
 import * as W6 from '../src/lab/stepWidgets6';
+import '../src/lab/stepWidgetsAI';
 import { mergeStates, decide } from '../src/sync/merge';
 import { emptyState, load, memoryStorage, save, STATE_KEY } from '../src/state/store';
 import { spokenCode, sentences, wordSchedule } from '../src/lib/reader';

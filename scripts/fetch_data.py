@@ -22,7 +22,6 @@ SOURCES = {
     'nasa_power_daily_kigali_2023.json': (power_daily(-1.94, 30.06, 20230101, 20231231), 's0p4', 'Kigali, Rwanda — the guide example'),
     'nasa_power_monthly_T2M_nairobi_1991_2023.json': (power_monthly('T2M', -1.29, 36.82, 1991, 2023), 's1p1', 'Nairobi, Kenya — the guide example'),
     'worldbank_RWA_population.json': ('https://api.worldbank.org/v2/country/RWA/indicator/SP.POP.TOTL?format=json&per_page=100', 's0p3', 'Rwanda total population'),
-    'worldbank_KEN_cereal_yield.json': ('https://api.worldbank.org/v2/country/KEN/indicator/AG.YLD.CREL.KG?format=json&per_page=100', 's5p5', 'Kenya cereal yield'),
     'disease_sh_rwanda_historical.json': ('https://disease.sh/v3/covid-19/historical/rwanda?lastdays=all', 's3p3', 'disease.sh is an unmaintained mirror; this copy is the fallback'),
     'owid_co2_data.csv': ('https://raw.githubusercontent.com/owid/co2-data/master/owid-co2-data.csv', 's2p3', 'Our World in Data CO2'),
     'noaa_gml_co2_mm_mlo.csv': ('https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_mlo.csv', 's2p6', 'Mauna Loa monthly mean CO2 (NOAA GML)'),

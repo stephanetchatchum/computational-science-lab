@@ -1,6 +1,7 @@
 /**
- * Stage 5: a visual for every build step, the audit rewrites (B2, B3, B4, C5, B1, X1, E1, A1), the D1 rewrite of s5p6
+ * Stage 5: a visual for every build step, the audit rewrites (B2, B3, B4, C5, B1, E1, A1), the D1 rewrite of s5p6
  * as finite-volume shallow water, one A4 correction, and the full guide for s5p7 (Bayesian calibration by MCMC).
+ * s5p4 and s5p5 were redesigned as AI projects (Nov 2026): their guides and visuals are in redesigned.ts.
  * Every test below runs against a reference solution in scripts/reference/ (scripts/verify_guides.sh, also in CI).
  */
 import type { Guide, GuideStep } from './legacy/curriculum.js';
@@ -30,18 +31,6 @@ export const STEP_VISUALS: Record<string, Record<number, Visual>> = {
     2: { widget: 'cores', caption: 'Parallel speedup is never free: it depends on whether the work is arithmetic or memory traffic.' },
     3: { widget: 'win2d', caption: 'The window for the high-resolution run.' },
     4: { widget: 'heat2d', caption: 'Same picture at any resolution; only the time per step changes.', preset: { r: 0.24 } },
-  },
-  s5p4: {
-    0: { widget: 'surrogate', caption: 'The slow simulation you will imitate: centre temperature as a function of how fast heat spreads and how big the hot square is.' },
-    1: { widget: 'surrogate', caption: 'A Latin hypercube spreads 200 runs evenly over both inputs.' },
-    3: { widget: 'surrogate', caption: 'Fresh ground truth: new points the surrogate has never seen.' },
-    4: { widget: 'win2d', caption: 'The window for the live learning plot.' },
-  },
-  s5p5: {
-    0: { widget: 'gdd', caption: 'Growing degree days in one picture: every day adds the part of its temperature above the base line.' },
-    1: { widget: 'gdd', caption: 'Slide the base temperature: the shaded area is the feature your function returns.' },
-    2: { widget: 'loyo', caption: 'Leave one year out: train on the others, predict the missing one, repeat for every year.' },
-    4: { widget: 'win2d', caption: 'The window for the crops.' },
   },
   s5p6: {
     0: { widget: 'dambreak', caption: 'The checks’ main test, running: a dam vanishes at t = 0. White is Ritter’s exact solution; your solver must land on it.' },
@@ -124,20 +113,6 @@ def test_implicit_is_stable_far_past_the_explicit_limit():
     u = start(60); first = u.max()
     u = step_implicit_numba(u, 5.0, 20)                  # r = 5, twenty times the explicit limit
     assert u.max() < first and u.min() >= -1e-12`;
-
-const GP_TEST = `from src.gp import fit_gp, coverage
-
-def wiggle(x):
-    return np.sin(3 * x).ravel() + 0.5 * x.ravel()
-
-def test_gp_knows_where_it_is_unsure():
-    rng = np.random.default_rng(0)
-    X = np.sort(rng.uniform(0, 3, 15))[:, None]
-    gp = fit_gp(X, wiggle(X))
-    assert gp.predict(X, return_std=True)[1].max() < 0.05          # sure at the training points
-    assert gp.predict(np.array([[6.0]]), return_std=True)[1][0] > 1.0   # unsure far from them
-    Xt = rng.uniform(0, 3, 200)[:, None]
-    assert coverage(gp, Xt, wiggle(Xt)) > 0.9                       # the 2-sigma band is honest`;
 
 const FLOOD_TEST_1D = `import math
 import numpy as np
@@ -223,9 +198,6 @@ export const PATCHES: Record<string, GuidePatch> = {
   },
   s5p2: {
     steps: { 6: { item: 'E1', optional: 'Optional (audit E1): the live fan chart. Keep the static percentile plot, which carries the result.', see: FAN_SEE } },
-  },
-  s5p5: {
-    steps: { 5: { item: 'E1', optional: 'Optional (audit E1): the crop drawing. The leave-one-year-out numbers in step 4 carry the science.' } },
   },
   s5p6: {
     steps: {
@@ -373,17 +345,6 @@ void accel(int n, const double *r, const double *m, double eps, double *a) {
       'All checks pass: the numba version matches scipy to about **1e-14**, and stays smooth and positive at r = 5. On a 2-core machine the implicit step got about **2×** faster in parallel while the explicit step barely changed. Your numbers depend on your cores and memory.',
       'If the parallel implicit version gives wrong answers, two rows are sharing one scratch array. Create them inside the {{prange}} loop.',
       IMPLICIT_TEST) }],
-  s5p4: [{ key: 'a:X1-gp', item: 'X1', after: 3, optional: 'Optional (audit X1, “required if time”): a surrogate that reports its own uncertainty.', visual: { widget: 'gpband', caption: 'A Gaussian process predicts a value and a band. The band pinches at the training points and widens in gaps and beyond the data: the surrogate knows where it is guessing.' },
-    step: S('A surrogate that knows when it is guessing',
-      'A random forest gives one number and no warning when it is far from its training data. A Gaussian process gives a prediction and an error bar, which tells you where to run the slow simulation next.',
-      ['Create **src/gp.py**. Write {{fit_gp(X, y)}}: a {{GaussianProcessRegressor}} from scikit-learn with kernel {{ConstantKernel(1.0) * RBF(numpy.full(X.shape[1], 0.5)) + WhiteKernel(1e-6, noise_level_bounds=(1e-10, 1e-1))}}, {{normalize_y=True}}, {{random_state=0}}. Fit and return it.',
-       'Write {{coverage(model, X, y)}}: the share of points whose true value lies within 2 standard deviations of the prediction ({{model.predict(X, return_std=True)}}).',
-       'Add the check below and run it.',
-       'On your heat data: scale both inputs to 0–1 first (alpha: {{(a − 0.2)/0.8}}, hot size: {{(s − 4)/26}}), fit on the training rows, and report test RMSE and coverage next to the forest’s numbers in **README.md**.'],
-      'python -m pytest -q tests/test_surrogate.py',
-      'All checks pass. Near the training points the uncertainty is below 0.05; far outside them it is above 1; and over 90% of new points fall inside the 2σ band. On the heat data a GP trained on 48 runs predicted the other 12 to about **0.1 °C**.',
-      'If fitting warns about a bound, the noise level wants to be smaller than allowed: harmless here, because the simulation has no noise.',
-      GP_TEST) }],
   s5p6: [{ key: 'a:D1-2d', item: 'D1', after: 2, visual: { widget: 'flood2d', caption: 'Water released on one hillside of a V valley runs down, sloshes, and settles along the valley floor. Friction slows it; the totals never change.' },
     step: S('Two dimensions over real ground: hydrostatic reconstruction',
       'On sloping ground a naive scheme makes a still lake start to flow, because it does not balance the pressure against the slope exactly. Hydrostatic reconstruction fixes that: each face sees the water level, not the raw depth.',

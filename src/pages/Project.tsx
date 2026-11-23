@@ -6,6 +6,7 @@ import { GUIDES_2D, isUnlocked, milestonesFor, revisionsFor, type Project as P }
 import { FINDINGS, DECISIONS } from '../content/audit';
 import { effectiveGuide, specText, validationText, type EffGuide, type EffStep } from '../content/guides';
 import { HERO_VIZ, guideMarkdown, comeBackCommands } from '../content/legacy/guideExtras.js';
+import { REDESIGNED_HERO } from '../content/redesigned';
 import { Md, Html, paragraphs, stripMarkup } from '../components/Markup';
 import { CodeBlock } from '../components/CodeBlock';
 import { VizWidget, StepVisuals } from '../components/VizWidget';
@@ -190,7 +191,7 @@ export default function Project() {
     s4p9: ['ising', 'Play with the idea first: a magnet made of spins. Change the temperature and watch order appear or melt.'],
     s5p7: ['traces', 'Play with the idea first: four random walkers that start far apart and end up sampling the same answer.'],
   };
-  const hero = HERO_VIZ[p.id] ?? NEW_HERO[p.id] ?? (p.labWidget ? [p.labWidget, ''] as [string, string] : stepWidget ? [stepWidget, 'Play with the idea first. This is the heart of the project.'] as [string, string] : undefined);
+  const hero = REDESIGNED_HERO[p.id] ?? HERO_VIZ[p.id] ?? NEW_HERO[p.id] ?? (p.labWidget ? [p.labWidget, ''] as [string, string] : stepWidget ? [stepWidget, 'Play with the idea first. This is the heart of the project.'] as [string, string] : undefined);
   const stepVisualCount = eg?.steps.filter(x => x.visuals?.length).length ?? 0;
   const lessons = Object.values(LESSONS).filter(l => hero?.[0] === l.id);
   const download = () => { if (!eg) return; const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([guideMarkdown(p, eg.guide)], { type: 'text/markdown' })); a.download = `${eg.guide.slug}-GUIDE.md`; document.body.appendChild(a); a.click(); a.remove(); };
