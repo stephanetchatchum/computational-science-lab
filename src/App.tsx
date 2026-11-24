@@ -8,7 +8,7 @@ import Project from './pages/Project';
 import { LabIndex, LessonPage } from './pages/Lab';
 import Review from './pages/Review';
 import Journal from './pages/Journal';
-import { Setup, Roadmaps, Capstone, About, NotFound } from './pages/Reference';
+import { Setup, Roadmaps, Capstone, Ideas, About, NotFound } from './pages/Reference';
 const Audit = lazy(() => import('./pages/Audit'));
 const Settings = lazy(() => import('./pages/Settings'));
 
@@ -46,6 +46,7 @@ export default function App() {
                 <Route path="setup" element={<Setup />} />
                 <Route path="roadmaps" element={<Roadmaps />} />
                 <Route path="capstone" element={<Capstone />} />
+                <Route path="ideas" element={<Ideas />} />
                 <Route path="audit" element={<Audit />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="about" element={<About />} />

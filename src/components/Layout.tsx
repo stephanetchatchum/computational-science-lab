@@ -17,6 +17,7 @@ const NAV: { to: string; label: string; icon: string; end?: boolean }[] = [
 const MORE: { to: string; label: string; icon: string }[] = [
   { to: '/roadmaps', label: 'Subject Roadmaps', icon: 'map' },
   { to: '/capstone', label: 'Capstone', icon: 'cap' },
+  { to: '/ideas', label: 'Future AI projects', icon: 'bulb' },
   { to: '/audit', label: 'Audit & decisions', icon: 'audit' },
   { to: '/settings', label: 'Settings & account', icon: 'settings' },
   { to: '/about', label: 'How this app teaches', icon: 'info' },

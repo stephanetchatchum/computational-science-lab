@@ -6,6 +6,7 @@ import { setupPageHTML, setGuideProgress, setOS } from '../content/legacy/guideE
 import { STAGES, CAPSTONE, stageProjects, stageConcepts, isApproved } from '../content/curriculum';
 import { ROADMAP_ADDITIONS, REVISIONS, PACING } from '../content/audit';
 import research from '../content/research.json';
+import { IDEA_GROUPS } from '../content/ideas';
 
 /* ---------------------------------------------------------------- Setup (original page, unchanged text) */
 export function Setup() {
@@ -102,6 +103,32 @@ export function Capstone() {
       <section className="section"><h2>Alternative directions</h2>
         <div className="grid three">{CAPSTONE.alternatives.map(a => <div key={a.title} className="panel tight"><div className="kicker dim">{a.domain}</div><h3 style={{ margin: '6px 0' }}>{a.title}</h3><p className="muted" style={{ fontSize: '.88rem' }}>{a.description}</p></div>)}</div>
       </section>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------- Future AI projects */
+export function Ideas() {
+  usePage('Future AI projects');
+  const n = IDEA_GROUPS.reduce((a, g) => a + g.ideas.length, 0);
+  return (
+    <div>
+      <h1>Future AI projects</h1>
+      <p className="muted prose" style={{ margin: '6px 0 18px' }}>{n} ideas you chose to keep: an AI working inside a real scientific model, with a big live visual, aimed at real problems in Africa. None has a build guide yet. When you pick one, it gets the same treatment as Moto-Taxi Rush and AI vs the Virus: the science checked first, a reference solution, tests, and a visual on every step.</p>
+      {IDEA_GROUPS.map(g => (
+        <section key={g.name} className="section">
+          <h2>{g.name} <span className="faint" style={{ fontSize: '.9rem' }}>· {g.ideas.length}</span></h2>
+          <p className="muted" style={{ margin: '4px 0 12px' }}>{g.blurb}</p>
+          <div className="grid three">{g.ideas.map(i => (
+            <div key={i.title} className="panel tight">
+              <h3 style={{ margin: '0 0 6px' }}>{i.title}</h3>
+              <p style={{ fontSize: '.9rem', margin: '0 0 8px' }}>{i.watch}</p>
+              <p className="muted" style={{ fontSize: '.84rem', margin: '0 0 4px' }}><b>Science:</b> {i.science}</p>
+              <p className="muted" style={{ fontSize: '.84rem', margin: 0 }}><b>AI:</b> {i.ai}</p>
+            </div>))}
+          </div>
+        </section>
+      ))}
     </div>
   );
 }
